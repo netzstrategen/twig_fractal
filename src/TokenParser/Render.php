@@ -24,16 +24,13 @@ class Render extends Twig_TokenParser {
     if ($stream->nextIf(Twig_Token::NAME_TYPE, 'with')) {
       $variables = $this->parser->getExpressionParser()->parseExpression();
     }
-    $only = FALSE;
-    if ($stream->nextIf(Twig_Token::NAME_TYPE, 'only')) {
-      $only = TRUE;
-    }
+    $only = TRUE;
     $stream->expect(Twig_Token::BLOCK_END_TYPE);
     return [$variables, $only, $ignoreMissing];
   }
 
   public function getTag() {
-    return 'include';
+    return 'render';
   }
 
 }
