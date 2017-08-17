@@ -2,6 +2,7 @@
 
 namespace Drupal\twig_fractal\TokenParser;
 
+use Drupal\twig_fractal\Node;
 use Twig_Token;
 use Twig_TokenParser;
 
@@ -10,7 +11,7 @@ class Render extends Twig_TokenParser {
   public function parse(Twig_Token $token) {
     $expr = $this->parser->getExpressionParser()->parseExpression();
     list($variables, $only, $ignoreMissing) = $this->parseArguments();
-    return new Twig_Node_Include($expr, $variables, $only, $ignoreMissing, $token->getLine(), $this->getTag());
+    return new Node\Render($expr, $variables, $only, $ignoreMissing, $token->getLine(), $this->getTag());
   }
 
   protected function parseArguments() {
