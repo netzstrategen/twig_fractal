@@ -1,0 +1,5 @@
+services:
+  twig.extension.twig_fractal:
+    class: Drupal\twig_fractal\TwigFractal
+    tags:
+      - { name: twig.extension }
