@@ -1,5 +1,5 @@
 name: Twig Fractal
-description: Reuse fractal components in D8 without duplicating the code.
+description: Reuse Fractal components in D8 without duplicating the code.
 package: Custom
 type: module
 core: 8.x
