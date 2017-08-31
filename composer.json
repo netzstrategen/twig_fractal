@@ -1,0 +1,13 @@
+{
+  "name": "drupal/twig_fractal",
+  "description": "Module to use fractal components in D8.",
+  "type": "drupal-module",
+  "authors": [
+    {
+      "name": "Fabian Marz",
+      "email": "fabian@netzstrategen.com"
+    }
+  ],
+  "license": "GPL-2.0+",
+  "minimum-stability": "dev"
+}
