@@ -1,7 +1,8 @@
 <?php
+
 /**
  * @file
- * Contains Drupal\twig_fractal\Node\Render.
+ * Contains \Drupal\twig_fractal\Node\Render.
  */
 
 namespace Drupal\twig_fractal\Node;
@@ -14,12 +15,14 @@ use Twig_Node_Expression_Constant;
 use Twig_Node_Include;
 
 /**
- * Class to implement the compiling of the new `render` node.
+ * Compiles `render` nodes.
  *
- * This class gets the default template variables from the Fractal component
- * definition file and adds them to the compiled Twig PHP template string.
+ * Unlike `include` nodes, the default values for template variables are
+ * automatically retrieved from the corresponding component definition
+ * file in the Fractal component library and added to the compiled Twig PHP
+ * template string.
  *
- * Default variables consist of
+ * The resulting template variables consist of:
  *
  * 1. the default `context` properties in the component's definition file,
  *    which may be overridden by
@@ -39,9 +42,11 @@ class Render extends Twig_Node_Include {
    */
   public function __construct(Twig_Node_Expression $expr, Twig_Node_Expression $variables = NULL, $only = FALSE, $ignoreMissing = FALSE, $lineno, $tag = NULL) {
     $this->component = $expr->getAttribute('value');
+
     // Remove any variant suffixes from the template name as there are no
     // template files for variants, only for components.
     $expr->setAttribute('value', $this->extractComponentName($this->component));
+
     parent::__construct($expr, $variables, $only, $ignoreMissing, $lineno);
   }
 
@@ -60,6 +65,7 @@ class Render extends Twig_Node_Include {
    */
   protected function addTemplateArguments(Twig_Compiler $compiler) {
     $defaults = $this->getComponentDefaults($this->component);
+
     $compiler->raw('array_merge($context,')->repr($defaults);
     if ($this->hasNode('variables')) {
       $compiler->raw(',')->subcompile($this->getNode('variables'));
@@ -68,9 +74,7 @@ class Render extends Twig_Node_Include {
   }
 
   /**
-   * Returns the component default variables from it's defintion file.
-   *
-   * @todo Merge specific keys to prevent config duplication.
+   * Returns the default variables from a component's definition file.
    *
    * @param string $component
    *   The component name.
@@ -79,15 +83,16 @@ class Render extends Twig_Node_Include {
    *   The default variables.
    */
   public function getComponentDefaults($component) {
-    $defaults = [];
-    $componentName = $this->extractComponentName($component);
-    $componentDefinition = Yaml::parse(file_get_contents($this->getComponentDefinitionFile($componentName)));
+    $component_name = $this->extractComponentName($component);
+    $component_definition = Yaml::parse(file_get_contents($this->getComponentDefinitionFile($component_name)));
     $component = $this->getComponentParts($component);
-    if ($component['variant'] && isset($componentDefinition['variants'])) {
-      $defaults += $this->getVariantDefaults($component['variant'], $componentDefinition['variants']);
+
+    $defaults = [];
+    if ($component['variant'] && isset($component_definition['variants'])) {
+      $defaults += $this->getVariantDefaults($component['variant'], $component_definition['variants']);
     }
     else {
-      $defaults += (array) $componentDefinition['context'];
+      $defaults += (array) $component_definition['context'];
     }
     return $defaults;
   }
@@ -95,7 +100,7 @@ class Render extends Twig_Node_Include {
   /**
    * Returns the relative file path of the Fractal YAML configuration file for a given component name.
    *
-   * The filename ending must be `.config.yml`.
+   * The file extension must be `.config.yml`.
    *
    * @param string $component
    *   The component name.
@@ -110,7 +115,7 @@ class Render extends Twig_Node_Include {
   }
 
   /**
-   * Splits the component and return the parts.
+   * Splits the component and returns the parts.
    *
    * @param string $component
    *   The component name.
@@ -124,7 +129,6 @@ class Render extends Twig_Node_Include {
       'base' => $parts[0] ?? NULL,
       'variant' => $parts[1] ?? NULL,
     ];
-    return $parts;
   }
 
   /**
