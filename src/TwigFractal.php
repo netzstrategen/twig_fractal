@@ -1,7 +1,8 @@
 <?php
+
 /**
  * @file
- * Contains Drupal\twig_fractal\TwigFractal.
+ * Contains \Drupal\twig_fractal\TwigFractal.
  */
 
 namespace Drupal\twig_fractal;
@@ -10,16 +11,16 @@ use Drupal\twig_fractal\TokenParser\Render;
 use Twig_Extension;
 
 /**
- * This class registers a custom `render` token parser to make Fractal components reusable in Drupal 8.
- *
- * @implements Twig_ExtensionInterface
+ * Registers a new `render` token parser to make Fractal components reusable in Drupal.
  *
  * @see \Drupal\twig_fractal\TokenParser\Render
+ *
+ * @implements Twig_ExtensionInterface
  */
 class TwigFractal extends Twig_Extension {
 
   /**
-   * Returns the `Render` token parser instance and add it to the existing list.
+   * Adds a new Render token parser instance to the list of parsers.
    *
    * @return array
    *   The token parsers.

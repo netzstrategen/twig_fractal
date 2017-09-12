@@ -1,7 +1,8 @@
 <?php
+
 /**
  * @file
- * Contains Drupal\twig_fractal\TokenParser\Render.
+ * Contains \Drupal\twig_fractal\TokenParser\Render.
  */
 
 namespace Drupal\twig_fractal\TokenParser;
@@ -11,16 +12,18 @@ use Twig_Token;
 use Twig_TokenParser;
 
 /**
- * Class to register and parse a new `render` tag for Twig templates.
+ * Registers and parses a new `render` tag for Twig templates.
  *
  * This tag is a derivation of the `include` tag but scopes the included file
- * by default. There is no need to use the `only` attribute and will be ignored if so.
- * In addition the render tag passes default template variables to the included
- * file which are set from a Fractal component definition file if not
- * explicitly given via the `with` attribute. Component variants must be referenced with
- * a double hyphen and definied in the `variants` key in the component definition file.
+ * by default. There is no need to use the `only` attribute, it is always enabled.
  *
- * Example usage:
+ * In addition the render tag passes default template variables to the included
+ * file which are set from a Fractal component definition file unless explicitly
+ * specified in the `with` attribute. Component variants can be requested by
+ * specifying them with a double hyphen in the template name. A variant needs to
+ * be defined in the `variants` key of the component's definition file.
+ *
+ * Usage:
  * @code
  * {% render '@foo/baz.twig' %}
  * {% render '@foo/baz.twig' with { qux: 'foobar' } %}
@@ -33,15 +36,15 @@ use Twig_TokenParser;
 class Render extends Twig_TokenParser {
 
   /**
-   * Parses a Twig token and returns a new `Render` node.
+   * Parses a Twig token and returns a new Render node.
    *
    * @param \Twig_Token $token
-   *   The Twig_Token to parse
-   *
-   * @see Twig_TokenParser_Include::parse()
+   *   The Twig_Token to parse.
    *
    * @return \Drupal\twig_fractal\Node\Render
-   *   The `Render` node.
+   *   The Render node.
+   *
+   * @see Twig_TokenParser_Include::parse()
    */
   public function parse(Twig_Token $token) {
     $expr = $this->parser->getExpressionParser()->parseExpression();
@@ -52,26 +55,32 @@ class Render extends Twig_TokenParser {
   /**
    * Returns the parsed token arguments.
    *
-   * @see Twig_TokenParser_Include::parseArguments()
-   *
    * @return array
    *   The extracted arguments.
+   *
+   * @see Twig_TokenParser_Include::parseArguments()
    */
   protected function parseArguments() {
     $stream = $this->parser->getStream();
+
     $ignoreMissing = FALSE;
     if ($stream->nextIf(Twig_Token::NAME_TYPE, 'ignore')) {
       $stream->expect(Twig_Token::NAME_TYPE, 'missing');
       $ignoreMissing = TRUE;
     }
+
     $variables = NULL;
     if ($stream->nextIf(Twig_Token::NAME_TYPE, 'with')) {
       $variables = $this->parser->getExpressionParser()->parseExpression();
     }
-    // Scope included file context.
+
+    // Do not inherit any variables from parent template or execution context,
+    // as there might be variables with the same names in the rendered component
+    // template.
     $only = TRUE;
 
     $stream->expect(Twig_Token::BLOCK_END_TYPE);
+
     return [$variables, $only, $ignoreMissing];
   }
 
