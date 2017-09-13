@@ -33,19 +33,34 @@ use Twig_Node_Include;
 class Render extends Twig_Node_Include {
 
   /**
+   * The pathname of the component to render.
+   *
+   * @var string
+   */
+  protected $pathname;
+
+  /**
    * The name of the component to render.
+   *
+   * @var string
    */
   protected $component;
+
+  /**
+   * The names of the variants to render.
+   *
+   * @var array
+   */
+  protected $variants = [];
 
   /**
    * Constructs a Twig template to render.
    */
   public function __construct(Twig_Node_Expression $expr, Twig_Node_Expression $variables = NULL, $only = FALSE, $ignoreMissing = FALSE, $lineno, $tag = NULL) {
-    $this->component = $expr->getAttribute('value');
-
+    list($this->pathname, $this->component, $this->variants) = $this->extractComponentParts($expr->getAttribute('value'));
     // Remove any variant suffixes from the template name as there are no
     // template files for variants, only for components.
-    $expr->setAttribute('value', $this->extractComponentName($this->component));
+    $expr->setAttribute('value', $this->pathname);
 
     parent::__construct($expr, $variables, $only, $ignoreMissing, $lineno);
   }
@@ -64,7 +79,7 @@ class Render extends Twig_Node_Include {
    * @param \Twig_Compiler $compiler
    */
   protected function addGetTemplate(Twig_Compiler $compiler) {
-    $defaults = $this->getComponentDefaults($this->component);
+    $defaults = $this->getComponentDefaultVariables();
     $compiler->raw('$defaults = ')->repr($defaults)->raw(';');
 
     $compiler->raw('$passed_variables = ')->subcompile($this->getNode('variables'))->raw(';');
@@ -109,27 +124,41 @@ EOD
   }
 
   /**
-   * Returns the default variables from a component's definition file.
-   *
-   * @param string $component
-   *   The component name.
+   * Returns the default variables from the component's definition file.
    *
    * @return array
-   *   The default variables.
+   *   The default variables of the component.
    */
-  public function getComponentDefaults($component) {
-    $component_name = $this->extractComponentName($component);
-    $component_definition = Yaml::parse(file_get_contents($this->getComponentDefinitionFile($component_name)));
-    $component = $this->getComponentParts($component);
+  protected function getComponentDefaultVariables() {
+    $component_definition = $this->loadComponentDefinition($this->pathname);
 
     $defaults = [];
-    if ($component['variant'] && isset($component_definition['variants'])) {
-      $defaults += $this->getVariantDefaults($component['variant'], $component_definition['variants']);
+    if (isset($component_definition['context'])) {
+      $defaults = $this->mergeContext($defaults, $component_definition['context']);
     }
-    else {
-      $defaults += (array) $component_definition['context'];
+    if (!empty($this->variants) && isset($component_definition['variants'])) {
+      foreach ($this->variants as $variant_modifier) {
+        $defaults += $this->getVariantDefaults($variant_modifier, $component_definition['variants']);
+      }
+    }
+    elseif (isset($component_definition['context'])) {
+      $defaults += $component_definition['context'];
     }
     return $defaults;
+  }
+
+  /**
+   * Loads the Fractal YAML component definition file.
+   *
+   * @param string $pathname
+   *   The pathname of the component's template file.
+   *
+   * @return array
+   *   The parsed component definition.
+   */
+  protected function loadComponentDefinition($pathname) {
+    $definition_pathname = $this->getComponentDefinitionFilePath($pathname);
+    return Yaml::parse(file_get_contents($definition_pathname));
   }
 
   /**
@@ -137,54 +166,42 @@ EOD
    *
    * The file extension must be `.config.yml`.
    *
-   * @param string $component
-   *   The component name.
+   * @param string $pathname
+   *   The pathname of the component's template file.
    *
    * @return string
    *   The relative path for the component definition file.
    */
-  protected function getComponentDefinitionFile($component) {
-    $components = \Drupal::service('twig.loader.componentlibrary');
-    $path = pathinfo($components->getCacheKey($component));
+  protected function getComponentDefinitionFilePath($pathname) {
+    $library = \Drupal::service('twig.loader.componentlibrary');
+    $path = pathinfo($library->getCacheKey($pathname));
     return $path['dirname'] . '/' . $path['filename'] . '.config.yml';
-  }
-
-  /**
-   * Splits the component and returns the parts.
-   *
-   * @param string $component
-   *   The component name.
-   *
-   * @return array
-   *   The base and variant parts of the component.
-   */
-  public function getComponentParts($component) {
-    $parts = explode('--', basename($component, '.twig'));
-    return [
-      'base' => $parts[0] ?? NULL,
-      'variant' => $parts[1] ?? NULL,
-    ];
   }
 
   /**
    * Returns the variant default variables from the parsed component definition.
    *
-   * @param string $variantName
-   *   The variant name.
+   * @param string $variant_modifier
+   *   The variant modifier (the part after the double-hyphen).
    * @param array $variants
    *   The parsed variants of the base component.
    *
    * @return array
    *   The variant default variables.
    */
-  public function getVariantDefaults($variantName, $variants) {
+  protected function getVariantDefaults($variant_modifier, array $variants) {
     $defaults = [];
-    foreach ($variants as $index => $variant) {
+    foreach ($variants as $key => $variant) {
+      // Check whether the custom key 'modifier' has been set.
+      if (isset($variant['modifier']) && $variant['modifier'] === $variant_modifier) {
+        $defaults += $variant['context'];
+        break;
+      }
       // Slugify the variant name to identify it from the component name.
       // E.g. `foo--baz-bar` will look for `Baz Bar` or `baz-bar` in
       // the `variants` key in `foo.config.yml`.
-      if (strtolower(Html::cleanCssIdentifier($variant['name'])) === $variantName) {
-        $defaults += (array) $variants[$index]['context'];
+      if (!empty($variant['context']) && strtolower(Html::cleanCssIdentifier($variant['name'])) === $variant_modifier) {
+        $defaults += $variant['context'];
         break;
       }
     }
@@ -192,16 +209,23 @@ EOD
   }
 
   /**
-   * Returns the extracted base component name without its variant.
+   * Returns the component's pathname, name, and a list of variants.
    *
-   * @param string $component
-   *   The component name.
+   * @param string $compound_name
+   *   A compound name including the component and optionally variants, delimited
+   *   by double-hyphens (`--`).
    *
-   * @return string
-   *   The base component name without its variant.
+   * @return array
+   *   An array with three elements:
+   *   1. the component's pathname
+   *   2. the component basename without variants
+   *   3. a list of variants, if any.
    */
-  public function extractComponentName($component) {
-    return preg_replace('@--[a-z0-9-]+@i', '', $component);
+  protected function extractComponentParts($compound_name) {
+    $pathname = preg_replace('@--[^.]+@', '', $compound_name);
+    $variants = explode('--', basename(basename($compound_name, '.twig'), '.html'));
+    $component = array_shift($variants);
+    return [$pathname, $component, $variants];
   }
 
 }
