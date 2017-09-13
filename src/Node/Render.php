@@ -8,6 +8,7 @@
 namespace Drupal\twig_fractal\Node;
 
 use Drupal\Component\Utility\Html;
+use Drupal\Core\Template\Attribute;
 use Symfony\Component\Yaml\Yaml;
 use Twig_Compiler;
 use Twig_Node_Expression;
@@ -65,10 +66,24 @@ class Render extends Twig_Node_Include {
    */
   protected function addTemplateArguments(Twig_Compiler $compiler) {
     $defaults = $this->getComponentDefaults($this->component);
-
-    $compiler->raw('array_merge($context,')->repr($defaults);
+    $compiler->raw('array_replace_recursive(')->repr($defaults);
     if ($this->hasNode('variables')) {
       $compiler->raw(',')->subcompile($this->getNode('variables'));
+//      foreach ($context as $context_key => $context_value) {
+//        if ($context_value instanceof \Drupal\Core\Template\Attribute) {
+//          foreach ($defaults['attr'] as $name => $value) {
+//            if (!isset($context_value[$name])) {
+//              $context_value[$name] = $value;
+//            }
+//            elseif ($name === 'class') {
+//              $context_value->addClass($value);
+//            }
+//          }
+//        }
+//      }
+      $compiler->raw(', [\'attr\' => new \Drupal\Core\Template\Attribute(array_merge(')->repr($defaults['attr'])->raw(', $context[\'title_attributes\']->toArray()')->raw('))]');
+      #$compiler->raw('array_merge($context['attributes']')->repr([]);
+      #$compiler->raw(')');
     }
     $compiler->raw(')');
   }
@@ -88,12 +103,24 @@ class Render extends Twig_Node_Include {
     $component = $this->getComponentParts($component);
 
     $defaults = [];
-    if ($component['variant'] && isset($component_definition['variants'])) {
+    if (0 &&$component['variant'] && isset($component_definition['variants'])) {
       $defaults += $this->getVariantDefaults($component['variant'], $component_definition['variants']);
     }
     else {
       $defaults += (array) $component_definition['context'];
+      #$defaults['attr'] = array_merge($defaults['attr'], $component_definition['context']['attr']);
+      $defaults['attr']['title'] = 'Hello world';
     }
+    $attributes = [];
+    if (isset($defaults['class'])) {
+      $attributes['class'] = $defaults['class'];
+    }
+    if (isset($defaults['attr'])) {
+      $attributes += $defaults['attr'];
+    }
+//    if (!empty($attributes)) {
+//      $defaults['attributes'] = new Attribute($attributes);
+//    }
     return $defaults;
   }
 
