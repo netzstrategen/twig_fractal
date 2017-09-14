@@ -66,7 +66,6 @@ foreach (['attributes', 'title_attributes', 'content_attributes'] as $name) {
   }
   if (!isset($passed_variables[$name])) {
     $variables[$name] = new \Drupal\Core\Template\Attribute($defaults[$name]);
-    continue;
   }
   else {
     $variables[$name] = $passed_variables[$name];
@@ -78,9 +77,9 @@ foreach (['attributes', 'title_attributes', 'content_attributes'] as $name) {
         $variables[$name][$default_key] = $default_value;
       }
     }
-    if ($name === 'attributes' && isset($defaults['class'])) {
-      $variables[$name]->addClass($defaults['class']);
-    }
+  }
+  if ($name === 'attributes' && isset($defaults['class'])) {
+    $variables[$name]->addClass($defaults['class']);
   }
 }
 EOD
