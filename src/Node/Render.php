@@ -54,8 +54,18 @@ class Render extends Twig_Node_Include {
   protected function addGetTemplate(Twig_Compiler $compiler) {
     $defaults = $this->getComponentDefaults($this->component);
     $compiler->raw('$defaults = ')->repr($defaults)->raw(';');
+
+    $compiler->raw('$variables = array_merge($defaults, ');
+    if ($this->hasNode('variables')) {
+      $compiler->subcompile($this->getNode('variables'));
+    }
+    else {
+      $compiler->raw('[]');
+    }
+    $compiler->raw(");\n");
+
     $compiler->write(<<<'EOD'
-foreach ($context as $context_key => $passed_variable) {
+foreach ($variables as $context_key => $passed_variable) {
   if (isset($defaults[$context_key]) && $passed_variable instanceof \Drupal\Core\Template\Attribute) {
     foreach ($defaults[$context_key] as $name => $value) {
       if (!isset($passed_variable[$name])) {
@@ -68,11 +78,11 @@ foreach ($context as $context_key => $passed_variable) {
   }
 }
 foreach (['attributes', 'title_attributes', 'content_attributes'] as $name) {
-  if (!isset($context[$name])) {
-    $context[$name] = [];
+  if (!isset($variables[$name])) {
+    $variables[$name] = [];
   }
-  if (!$context[$name] instanceof \Drupal\Core\Template\Attribute) {
-    $context[$name] = new \Drupal\Core\Template\Attribute($context[$name]);
+  if (!$variables[$name] instanceof \Drupal\Core\Template\Attribute) {
+    $variables[$name] = new \Drupal\Core\Template\Attribute($variables[$name]);
   }
 }
 EOD
@@ -103,6 +113,8 @@ EOD
    * @param \Twig_Compiler $compiler
    */
   protected function addTemplateArguments(Twig_Compiler $compiler) {
+    $compiler->raw('$variables');
+    return;
     $defaults = $this->getComponentDefaults($this->component);
     $compiler->raw('array_merge(')->repr($defaults);
     if ($this->hasNode('variables')) {
