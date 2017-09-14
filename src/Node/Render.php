@@ -50,42 +50,6 @@ class Render extends Twig_Node_Include {
     parent::__construct($expr, $variables, $only, $ignoreMissing, $lineno);
   }
 
-  protected function addGetTemplate(Twig_Compiler $compiler) {
-    $defaults = $this->getComponentDefaults($this->component);
-    $compiler->raw('$defaults = ')->repr($defaults)->raw(';');
-
-    $compiler->raw('$passed_variables = ')->subcompile($this->getNode('variables'))->raw(';');
-    $compiler->raw('$variables = array_merge($defaults, $passed_variables);');
-    $compiler->raw('unset($variables[\'attributes\'], $variables[\'title_attributes\'], $variables[\'content_attributes\']);');
-
-    $compiler->write(<<<'EOD'
-foreach (['attributes', 'title_attributes', 'content_attributes'] as $name) {
-  if (!isset($defaults[$name])) {
-    continue;
-  }
-  if (!isset($passed_variables[$name])) {
-    $variables[$name] = new \Drupal\Core\Template\Attribute($defaults[$name]);
-  }
-  else {
-    $variables[$name] = $passed_variables[$name];
-    if (!$variables[$name] instanceof \Drupal\Core\Template\Attribute) {
-      $variables[$name] = new \Drupal\Core\Template\Attribute($variables[$name]);
-    }
-    foreach ($defaults[$name] as $default_key => $default_value) {
-      if (!isset($variables[$name][$default_key])) {
-        $variables[$name][$default_key] = $default_value;
-      }
-    }
-  }
-  if ($name === 'attributes' && isset($defaults['class'])) {
-    $variables[$name]->addClass($defaults['class']);
-  }
-}
-EOD
-    );
-    parent::addGetTemplate($compiler);
-  }
-
   /**
    * Adds the template variables to the compiled Twig PHP template string.
    *
@@ -96,6 +60,47 @@ EOD
    * 2. the `context` properties of the requested variants (if any) in the
    *    component's definition file, which may be overridden by
    * 3. the variables passed to the `render` tag itself.
+   *
+   * @param \Twig_Compiler $compiler
+   */
+  protected function addGetTemplate(Twig_Compiler $compiler) {
+    $defaults = $this->getComponentDefaults($this->component);
+    $compiler->raw('$defaults = ')->repr($defaults)->raw(';');
+
+    $compiler->raw('$passed_variables = ')->subcompile($this->getNode('variables'))->raw(';');
+    $compiler->raw('$variables = array_merge($defaults, $passed_variables);');
+    $compiler->raw('unset($variables[\'attributes\'], $variables[\'title_attributes\'], $variables[\'content_attributes\']);');
+
+    $compiler->write(<<<'EOD'
+      foreach (['attributes', 'title_attributes', 'content_attributes'] as $name) {
+        if (!isset($defaults[$name])) {
+          continue;
+        }
+        if (!isset($passed_variables[$name])) {
+          $variables[$name] = new \Drupal\Core\Template\Attribute($defaults[$name]);
+        }
+        else {
+          $variables[$name] = $passed_variables[$name];
+          if (!$variables[$name] instanceof \Drupal\Core\Template\Attribute) {
+            $variables[$name] = new \Drupal\Core\Template\Attribute($variables[$name]);
+          }
+          foreach ($defaults[$name] as $default_key => $default_value) {
+            if (!isset($variables[$name][$default_key])) {
+              $variables[$name][$default_key] = $default_value;
+            }
+          }
+        }
+        if ($name === 'attributes' && isset($defaults['class'])) {
+          $variables[$name]->addClass($defaults['class']);
+        }
+      }
+EOD
+    );
+    parent::addGetTemplate($compiler);
+  }
+
+  /**
+   * Passes the precompiled template variables to the Twig PHP template display method.
    *
    * @param \Twig_Compiler $compiler
    */
