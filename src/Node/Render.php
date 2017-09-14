@@ -8,7 +8,6 @@
 namespace Drupal\twig_fractal\Node;
 
 use Drupal\Component\Utility\Html;
-use Drupal\Core\Template\Attribute;
 use Symfony\Component\Yaml\Yaml;
 use Twig_Compiler;
 use Twig_Node_Expression;
@@ -84,16 +83,7 @@ foreach (['attributes', 'title_attributes', 'content_attributes'] as $name) {
 }
 EOD
     );
-
-    $compiler
-      ->write('$this->loadTemplate(')
-      ->subcompile($this->getNode('expr'))
-      ->raw(', ')
-      ->repr($this->getTemplateName())
-      ->raw(', ')
-      ->repr($this->getTemplateLine())
-      ->raw(')')
-    ;
+    parent::addGetTemplate($compiler);
   }
 
   /**
@@ -111,14 +101,6 @@ EOD
    */
   protected function addTemplateArguments(Twig_Compiler $compiler) {
     $compiler->raw('$variables');
-    return;
-    $defaults = $this->getComponentDefaults($this->component);
-    $compiler->raw('array_merge(')->repr($defaults);
-    if ($this->hasNode('variables')) {
-      $compiler->raw(',')->subcompile($this->getNode('variables'));
-      $compiler->raw(', [\'attributes\' => new \Drupal\Core\Template\Attribute(')->repr($defaults['attributes'])->raw(')]');
-    }
-    $compiler->raw(')');
   }
 
   /**
@@ -136,22 +118,12 @@ EOD
     $component = $this->getComponentParts($component);
 
     $defaults = [];
-    if (0 &&$component['variant'] && isset($component_definition['variants'])) {
+    if ($component['variant'] && isset($component_definition['variants'])) {
       $defaults += $this->getVariantDefaults($component['variant'], $component_definition['variants']);
     }
     else {
       $defaults += (array) $component_definition['context'];
     }
-    $attributes = [];
-    if (isset($defaults['class'])) {
-      $attributes['class'] = $defaults['class'];
-    }
-    if (isset($defaults['attr'])) {
-      $attributes += $defaults['attr'];
-    }
-//    if (!empty($attributes)) {
-//      $defaults['attributes'] = new Attribute($attributes);
-//    }
     return $defaults;
   }
 
