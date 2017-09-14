@@ -55,34 +55,32 @@ class Render extends Twig_Node_Include {
     $defaults = $this->getComponentDefaults($this->component);
     $compiler->raw('$defaults = ')->repr($defaults)->raw(';');
 
-    $compiler->raw('$variables = array_merge($defaults, ');
-    if ($this->hasNode('variables')) {
-      $compiler->subcompile($this->getNode('variables'));
-    }
-    else {
-      $compiler->raw('[]');
-    }
-    $compiler->raw(");\n");
+    $compiler->raw('$passed_variables = ')->subcompile($this->getNode('variables'))->raw(';');
+    $compiler->raw('$variables = array_merge($defaults, $passed_variables);');
+    $compiler->raw('unset($variables[\'attributes\'], $variables[\'title_attributes\'], $variables[\'content_attributes\']);');
 
     $compiler->write(<<<'EOD'
-foreach ($variables as $context_key => $passed_variable) {
-  if (isset($defaults[$context_key]) && $passed_variable instanceof \Drupal\Core\Template\Attribute) {
-    foreach ($defaults[$context_key] as $name => $value) {
-      if (!isset($passed_variable[$name])) {
-        $passed_variable[$name] = $value;
+foreach (['attributes', 'title_attributes', 'content_attributes'] as $name) {
+  if (!isset($defaults[$name])) {
+    continue;
+  }
+  if (!isset($passed_variables[$name])) {
+    $variables[$name] = new \Drupal\Core\Template\Attribute($defaults[$name]);
+    continue;
+  }
+  else {
+    $variables[$name] = $passed_variables[$name];
+    if (!$variables[$name] instanceof \Drupal\Core\Template\Attribute) {
+      $variables[$name] = new \Drupal\Core\Template\Attribute($variables[$name]);
+    }
+    foreach ($defaults[$name] as $default_key => $default_value) {
+      if (!isset($variables[$name][$default_key])) {
+        $variables[$name][$default_key] = $default_value;
       }
     }
-    if ($context_key === 'attributes' && isset($defaults['class'])) {
-      $passed_variable->addClass($defaults['class']);
+    if ($name === 'attributes' && isset($defaults['class'])) {
+      $variables[$name]->addClass($defaults['class']);
     }
-  }
-}
-foreach (['attributes', 'title_attributes', 'content_attributes'] as $name) {
-  if (!isset($variables[$name])) {
-    $variables[$name] = [];
-  }
-  if (!$variables[$name] instanceof \Drupal\Core\Template\Attribute) {
-    $variables[$name] = new \Drupal\Core\Template\Attribute($variables[$name]);
   }
 }
 EOD
