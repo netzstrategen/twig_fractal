@@ -51,6 +51,35 @@ class Render extends Twig_Node_Include {
     parent::__construct($expr, $variables, $only, $ignoreMissing, $lineno);
   }
 
+  protected function addGetTemplate(Twig_Compiler $compiler) {
+    $defaults = $this->getComponentDefaults($this->component);
+    $compiler->raw('$defaults = ')->repr($defaults)->raw(';');
+    $compiler->write(
+      'foreach ($context as $context_key => $context_value) {',
+        'if ($context_value instanceof \Drupal\Core\Template\Attribute) {',
+          'foreach ($defaults[\'attr\'] as $name => $value) {',
+            'if (!isset($context_value[$name])) {',
+              '$context_value[$name] = $value;',
+            '}',
+            'elseif ($name === \'class\') {',
+              '$context_value->addClass($value);',
+            '}',
+          '}',
+        '}',
+      '}'
+    );
+
+    $compiler
+      ->write('$this->loadTemplate(')
+      ->subcompile($this->getNode('expr'))
+      ->raw(', ')
+      ->repr($this->getTemplateName())
+      ->raw(', ')
+      ->repr($this->getTemplateLine())
+      ->raw(')')
+    ;
+  }
+
   /**
    * Adds the template variables to the compiled Twig PHP template string.
    *
@@ -69,19 +98,7 @@ class Render extends Twig_Node_Include {
     $compiler->raw('array_replace_recursive(')->repr($defaults);
     if ($this->hasNode('variables')) {
       $compiler->raw(',')->subcompile($this->getNode('variables'));
-//      foreach ($context as $context_key => $context_value) {
-//        if ($context_value instanceof \Drupal\Core\Template\Attribute) {
-//          foreach ($defaults['attr'] as $name => $value) {
-//            if (!isset($context_value[$name])) {
-//              $context_value[$name] = $value;
-//            }
-//            elseif ($name === 'class') {
-//              $context_value->addClass($value);
-//            }
-//          }
-//        }
-//      }
-      $compiler->raw(', [\'attr\' => new \Drupal\Core\Template\Attribute(array_merge(')->repr($defaults['attr'])->raw(', $context[\'title_attributes\']->toArray()')->raw('))]');
+      #$compiler->raw(', [\'attr\' => new \Drupal\Core\Template\Attribute(array_merge(')->repr($defaults['attr'])->raw(', $context[\'title_attributes\']->toArray()')->raw('))]');
       #$compiler->raw('array_merge($context['attributes']')->repr([]);
       #$compiler->raw(')');
     }
@@ -108,8 +125,6 @@ class Render extends Twig_Node_Include {
     }
     else {
       $defaults += (array) $component_definition['context'];
-      #$defaults['attr'] = array_merge($defaults['attr'], $component_definition['context']['attr']);
-      $defaults['attr']['title'] = 'Hello world';
     }
     $attributes = [];
     if (isset($defaults['class'])) {
