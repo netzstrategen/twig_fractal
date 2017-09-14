@@ -65,23 +65,24 @@ class Render extends Twig_Node_Include {
     $compiler->raw(");\n");
 
     $compiler->write(<<<'EOD'
-foreach ($variables as $context_key => $passed_variable) {
-  if (isset($defaults[$context_key]) && $passed_variable instanceof \Drupal\Core\Template\Attribute) {
-    foreach ($defaults[$context_key] as $name => $value) {
-      if (!isset($passed_variable[$name])) {
-        $passed_variable[$name] = $value;
-      }
-    }
-    if ($context_key === 'attributes' && isset($defaults['class'])) {
-      $passed_variable->addClass($defaults['class']);
-    }
-  }
-}
+//foreach ($defaults as $default_key => $default_value) {
+//  $passed_variable = $variables[$default_key] ?? NULL;
+//  if ($passed_variable instanceof \Drupal\Core\Template\Attribute) {
+//    foreach ($defaults[$default_key] as $name => $value) {
+//      if (!isset($passed_variable[$name])) {
+//        $passed_variable[$name] = $value;
+//      }
+//    }
+//    if ($default_key === 'attributes' && isset($defaults['class'])) {
+//      $passed_variable->addClass($defaults['class']);
+//    }
+//  }
+//}
 foreach (['attributes', 'title_attributes', 'content_attributes'] as $name) {
-  if (!isset($variables[$name])) {
-    $variables[$name] = [];
-  }
-  if (!$variables[$name] instanceof \Drupal\Core\Template\Attribute) {
+  if (isset($defaults[$name])) {
+    $defaults[$name] = !isset($defaults[$name]) ? [] : $defaults[$name];
+    $variables[$name] = !isset($variables[$name]) ? [] : $variables[$name]->toArray();
+    $variables[$name] = array_merge_recursive($defaults[$name], $variables[$name]);
     $variables[$name] = new \Drupal\Core\Template\Attribute($variables[$name]);
   }
 }
