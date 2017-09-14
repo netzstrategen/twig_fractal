@@ -54,19 +54,28 @@ class Render extends Twig_Node_Include {
   protected function addGetTemplate(Twig_Compiler $compiler) {
     $defaults = $this->getComponentDefaults($this->component);
     $compiler->raw('$defaults = ')->repr($defaults)->raw(';');
-    $compiler->write(
-      'foreach ($context as $context_key => $context_value) {',
-        'if ($context_value instanceof \Drupal\Core\Template\Attribute) {',
-          'foreach ($defaults[\'attr\'] as $name => $value) {',
-            'if (!isset($context_value[$name])) {',
-              '$context_value[$name] = $value;',
-            '}',
-            'elseif ($name === \'class\') {',
-              '$context_value->addClass($value);',
-            '}',
-          '}',
-        '}',
-      '}'
+    $compiler->write(<<<'EOD'
+foreach ($context as $context_key => $passed_variable) {
+  if (isset($defaults[$context_key]) && $passed_variable instanceof \Drupal\Core\Template\Attribute) {
+    foreach ($defaults[$context_key] as $name => $value) {
+      if (!isset($passed_variable[$name])) {
+        $passed_variable[$name] = $value;
+      }
+    }
+    if ($context_key === 'attributes' && isset($defaults['class'])) {
+      $passed_variable->addClass($defaults['class']);
+    }
+  }
+}
+foreach (['attributes', 'title_attributes', 'content_attributes'] as $name) {
+  if (!isset($context[$name])) {
+    $context[$name] = [];
+  }
+  if (!$context[$name] instanceof \Drupal\Core\Template\Attribute) {
+    $context[$name] = new \Drupal\Core\Template\Attribute($context[$name]);
+  }
+}
+EOD
     );
 
     $compiler
@@ -95,12 +104,10 @@ class Render extends Twig_Node_Include {
    */
   protected function addTemplateArguments(Twig_Compiler $compiler) {
     $defaults = $this->getComponentDefaults($this->component);
-    $compiler->raw('array_replace_recursive(')->repr($defaults);
+    $compiler->raw('array_merge(')->repr($defaults);
     if ($this->hasNode('variables')) {
       $compiler->raw(',')->subcompile($this->getNode('variables'));
-      #$compiler->raw(', [\'attr\' => new \Drupal\Core\Template\Attribute(array_merge(')->repr($defaults['attr'])->raw(', $context[\'title_attributes\']->toArray()')->raw('))]');
-      #$compiler->raw('array_merge($context['attributes']')->repr([]);
-      #$compiler->raw(')');
+      $compiler->raw(', [\'attributes\' => new \Drupal\Core\Template\Attribute(')->repr($defaults['attributes'])->raw(')]');
     }
     $compiler->raw(')');
   }
