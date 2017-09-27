@@ -80,37 +80,44 @@ class Render extends Twig_Node_Include {
    */
   protected function addGetTemplate(Twig_Compiler $compiler) {
     $defaults = $this->getComponentDefaultVariables();
-    $compiler->raw('$defaults = ')->repr($defaults)->raw(';');
+    $compiler->raw('$defaults = ')->repr($defaults)->raw(";\n");
 
-    $compiler->raw('$passed_variables = ')->subcompile($this->getNode('variables'))->raw(';');
-    $compiler->raw('$variables = array_merge($defaults, $passed_variables);');
-    $compiler->raw('unset($variables[\'attributes\'], $variables[\'title_attributes\'], $variables[\'content_attributes\']);');
+    if (!$this->hasNode('variables')) {
+      $compiler->raw('$variables = $defaults')->raw(";\n");
+    }
+    else {
+      $compiler->raw('$passed_variables = ')->subcompile($this->getNode('variables'))->raw(";\n");
+      $compiler->raw('$variables = array_merge($defaults, $passed_variables)')->raw(";\n");
+      $compiler->raw('unset($variables[\'attributes\'], $variables[\'title_attributes\'], $variables[\'content_attributes\'])')->raw(";\n");
 
-    $compiler->write(<<<'EOD'
-      foreach (['attributes', 'title_attributes', 'content_attributes'] as $name) {
-        if (!isset($defaults[$name])) {
-          continue;
-        }
-        if (!isset($passed_variables[$name])) {
-          $variables[$name] = new \Drupal\Core\Template\Attribute($defaults[$name]);
-        }
-        else {
-          $variables[$name] = $passed_variables[$name];
-          if (!$variables[$name] instanceof \Drupal\Core\Template\Attribute) {
-            $variables[$name] = new \Drupal\Core\Template\Attribute($variables[$name]);
+      $compiler->raw(<<<'EOD'
+
+        foreach (['attributes', 'title_attributes', 'content_attributes'] as $name) {
+          if (!isset($defaults[$name])) {
+            continue;
           }
-          foreach ($defaults[$name] as $default_key => $default_value) {
-            if (!isset($variables[$name][$default_key])) {
-              $variables[$name][$default_key] = $default_value;
+          if (!isset($passed_variables[$name])) {
+            $variables[$name] = new \Drupal\Core\Template\Attribute($defaults[$name]);
+          }
+          else {
+            $variables[$name] = $passed_variables[$name];
+            if (!$variables[$name] instanceof \Drupal\Core\Template\Attribute) {
+              $variables[$name] = new \Drupal\Core\Template\Attribute($variables[$name]);
+            }
+            foreach ($defaults[$name] as $default_key => $default_value) {
+              if (!isset($variables[$name][$default_key])) {
+                #$variables[$name][$default_key] = $default_value;
+                $variables[$name]->setAttribute($default_key, $default_value);
+              }
             }
           }
+          if ($name === 'attributes' && isset($defaults[$name]['class'])) {
+            $variables[$name]->addClass($defaults[$name]['class']);
+          }
         }
-        if ($name === 'attributes' && isset($defaults['class'])) {
-          $variables[$name]->addClass($defaults['class']);
-        }
-      }
 EOD
-    );
+      );
+    }
     parent::addGetTemplate($compiler);
   }
 
@@ -138,13 +145,50 @@ EOD
     }
     if (!empty($this->variants) && isset($component_definition['variants'])) {
       foreach ($this->variants as $variant_modifier) {
-        $defaults += $this->getVariantDefaults($variant_modifier, $component_definition['variants']);
+        if ($variant_defaults = $this->getVariantDefaultVariables($variant_modifier, $component_definition['variants'])) {
+          $defaults = $this->mergeContext($defaults, $variant_defaults);
+        }
       }
     }
-    elseif (isset($component_definition['context'])) {
-      $defaults += $component_definition['context'];
-    }
     return $defaults;
+  }
+
+  /**
+   * Merges a context default variables, with support for attributes.
+   *
+   * Note: The initial set of default variables should not be set directly to
+   * $base but should also merged with this helper function.
+   *
+   * @param array $base
+   *   The context default variables (result) array to merge into.
+   * @param array $override
+   *   The context variables of a certain scope; i.e., the components base
+   *   context variables or the context variables of a variant.
+   *
+   * @return array
+   *   The $base array merged with $override variables,
+   */
+  protected function mergeContext(array $base, array $override) {
+    foreach ($override as $name => $value) {
+      // Any context variable containing "attributes" is considered a data array
+      // for Drupal Attributes; e.g., title_attributes, author_attributes, etc.
+      if (strpos($name, 'attributes') === FALSE) {
+        $base[$name] = $value;
+      }
+      else {
+        // Handle the special merging of classes first.
+        // Also ensure that the 'class' attribute on $base is always an array.
+        if (isset($value['class'])) {
+          $base[$name]['class'] = array_merge($base[$name]['class'] ?? [], is_array($value['class']) ? $value['class'] : explode(' ', $value['class']));
+          unset($value['class']);
+        }
+        if (!isset($base[$name])) {
+          $base[$name] = [];
+        }
+        $base[$name] = array_merge($base[$name], $value);
+      }
+    }
+    return $base;
   }
 
   /**
@@ -181,31 +225,36 @@ EOD
   /**
    * Returns the variant default variables from the parsed component definition.
    *
-   * @param string $variant_modifier
+   * @param string $modifier
    *   The variant modifier (the part after the double-hyphen).
-   * @param array $variants
-   *   The parsed variants of the base component.
+   * @param array $defined_variants
+   *   A list of variant definitions of the base component.
    *
    * @return array
    *   The variant default variables.
    */
-  protected function getVariantDefaults($variant_modifier, array $variants) {
-    $defaults = [];
-    foreach ($variants as $key => $variant) {
-      // Check whether the custom key 'modifier' has been set.
-      if (isset($variant['modifier']) && $variant['modifier'] === $variant_modifier) {
-        $defaults += $variant['context'];
-        break;
-      }
-      // Slugify the variant name to identify it from the component name.
-      // E.g. `foo--baz-bar` will look for `Baz Bar` or `baz-bar` in
-      // the `variants` key in `foo.config.yml`.
-      if (!empty($variant['context']) && strtolower(Html::cleanCssIdentifier($variant['name'])) === $variant_modifier) {
-        $defaults += $variant['context'];
+  protected function getVariantDefaultVariables($modifier, array $defined_variants) {
+    // Check for a direct match in the custom property 'modifier'.
+    foreach ($defined_variants as $variant) {
+      if (isset($variant['modifier']) && $variant['modifier'] === $modifier) {
+        if (isset($variant['context'])) {
+          return $variant['context'];
+        }
         break;
       }
     }
-    return $defaults;
+    // Slugify the variant name to identify it from the component name.
+    // E.g. `foo--baz-bar` will look for `Baz Bar` or `baz-bar` in
+    // the `variants` key in `foo.config.yml`.
+    foreach ($defined_variants as $variant) {
+      if (strtolower(Html::cleanCssIdentifier($variant['name'])) === $modifier) {
+        if (isset($variant['context'])) {
+          return $variant['context'];
+        }
+        break;
+      }
+    }
+    return [];
   }
 
   /**
