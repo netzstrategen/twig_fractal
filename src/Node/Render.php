@@ -88,11 +88,13 @@ class Render extends Twig_Node_Include {
     else {
       $compiler->raw('$passed_variables = ')->subcompile($this->getNode('variables'))->raw(";\n");
       $compiler->raw('$variables = array_merge($defaults, $passed_variables)')->raw(";\n");
-      $compiler->raw('unset($variables[\'attributes\'], $variables[\'title_attributes\'], $variables[\'content_attributes\'])')->raw(";\n");
-
       $compiler->raw(<<<'EOD'
 
-        foreach (['attributes', 'title_attributes', 'content_attributes'] as $name) {
+        foreach ($variables as $name => $value) {
+          if (FALSE === strpos($name, 'attributes')) {
+            continue;
+          }
+          unset($variables[$name]);
           if (!isset($defaults[$name])) {
             continue;
           }
@@ -106,7 +108,6 @@ class Render extends Twig_Node_Include {
             }
             foreach ($defaults[$name] as $default_key => $default_value) {
               if (!isset($variables[$name][$default_key])) {
-                #$variables[$name][$default_key] = $default_value;
                 $variables[$name]->setAttribute($default_key, $default_value);
               }
             }
