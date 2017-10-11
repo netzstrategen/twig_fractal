@@ -235,9 +235,9 @@ EOD
    *   The variant default variables.
    */
   protected function getVariantDefaultVariables($modifier, array $defined_variants) {
-    // Check for a direct match in the custom property 'modifier'.
+    // Check for a direct match in 'name' or the custom property 'modifier'.
     foreach ($defined_variants as $variant) {
-      if (isset($variant['modifier']) && $variant['modifier'] === $modifier) {
+      if ((isset($variant['name']) && $variant['name'] === $modifier) || (isset($variant['modifier']) && $variant['modifier'] === $modifier)) {
         if (isset($variant['context'])) {
           return $variant['context'];
         }
