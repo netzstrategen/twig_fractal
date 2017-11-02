@@ -12,8 +12,6 @@ use Symfony\Component\Yaml\Yaml;
 
 class Component {
 
-  private static $instance;
-
   /**
    * The pathname of the component to render.
    *
@@ -35,15 +33,8 @@ class Component {
    */
   protected $variants = [];
 
-  private function __construct($compound) {
+  public function __construct($compound) {
     list($this->pathname, $this->component, $this->variants) = $this->extractComponentParts($compound);
-  }
-
-  public static function getInstance($compound) {
-    if (!isset(static::$instance)) {
-      static::$instance = new static($compound);
-    }
-    return static::$instance;
   }
 
   public function __get($name) {
