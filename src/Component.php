@@ -24,7 +24,7 @@ class Component {
    *
    * @var string
    */
-  protected $component;
+  protected $name;
 
   /**
    * The names of the variants to render.
@@ -34,7 +34,7 @@ class Component {
   protected $variants = [];
 
   public function __construct($compound) {
-    list($this->pathname, $this->component, $this->variants) = $this->extractComponentParts($compound);
+    list($this->pathname, $this->name, $this->variants) = $this->extractParts($compound);
   }
 
   public function __get($name) {
@@ -47,8 +47,8 @@ class Component {
    * @return array
    *   The default variables of the component.
    */
-  public function getComponentDefaultVariables() {
-    $component_definition = $this->loadComponentDefinition($this->pathname);
+  public function getDefaultVariables() {
+    $component_definition = $this->loadDefinition($this->pathname);
 
     $defaults = [];
     if (isset($component_definition['context'])) {
@@ -111,8 +111,8 @@ class Component {
    * @return array
    *   The parsed component definition.
    */
-  protected function loadComponentDefinition($pathname) {
-    $definition_pathname = $this->getComponentDefinitionFilePath($pathname);
+  protected function loadDefinition($pathname) {
+    $definition_pathname = $this->getDefinitionFilePath($pathname);
     return Yaml::parse(file_get_contents($definition_pathname));
   }
 
@@ -127,7 +127,7 @@ class Component {
    * @return string
    *   The relative path for the component definition file.
    */
-  protected function getComponentDefinitionFilePath($pathname) {
+  protected function getDefinitionFilePath($pathname) {
     $library = \Drupal::service('twig.loader.componentlibrary');
     $path = pathinfo($library->getCacheKey($pathname));
     return $path['dirname'] . '/' . $path['filename'] . '.config.yml';
@@ -181,7 +181,7 @@ class Component {
    *   2. the component basename without variants
    *   3. a list of variants, if any.
    */
-  protected function extractComponentParts($compound_name) {
+  protected function extractParts($compound_name) {
     $pathname = preg_replace('@--[^.]+@', '', $compound_name);
     $variants = explode('--', basename(basename($compound_name, '.twig'), '.html'));
     $component = array_shift($variants);

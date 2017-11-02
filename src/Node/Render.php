@@ -56,10 +56,10 @@ class Render extends Twig_Node_Include {
    * @param \Twig_Compiler $compiler
    */
   protected function addGetTemplate(Twig_Compiler $compiler) {
-    $compiler->raw('$node_components = new \Drupal\twig_fractal\Component(');
+    $compiler->raw('$component = new \Drupal\twig_fractal\Component(');
     $compiler->subcompile($this->getNode('expr'));
     $compiler->raw(')')->raw(";\n");
-    $compiler->raw('$defaults = $node_components->getComponentDefaultVariables();');
+    $compiler->raw('$defaults = $component->getDefaultVariables();');
     if (!$this->hasNode('variables')) {
       $compiler->raw('$variables = $defaults')->raw(";\n");
     }
@@ -97,20 +97,15 @@ class Render extends Twig_Node_Include {
 EOD
       );
     }
-    $compiler->raw("\n");
-    $compiler->raw('$template = ');
-    $compiler->raw('$node_components->pathname');
-    $compiler->raw(';');
     $compiler
       ->write('$this->loadTemplate(')
-      ->raw('$template')
+      ->raw('$component->pathname')
       ->raw(', ')
       ->repr($this->getTemplateName())
       ->raw(', ')
       ->repr($this->getTemplateLine())
       ->raw(')')
     ;
-    return $compiler;
   }
 
   /**
