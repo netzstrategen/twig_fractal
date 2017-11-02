@@ -9,7 +9,6 @@ namespace Drupal\twig_fractal\Node;
 
 use Twig_Compiler;
 use Twig_Node_Expression;
-use Twig_Node_Expression_Constant;
 use Twig_Node_Include;
 
 /**
@@ -34,11 +33,6 @@ class Render extends Twig_Node_Include {
    * Constructs a Twig template to render.
    */
   public function __construct(Twig_Node_Expression $expr, Twig_Node_Expression $variables = NULL, $only = FALSE, $ignoreMissing = FALSE, $lineno, $tag = NULL) {
-
-    // Remove any variant suffixes from the template name as there are no
-    // template files for variants, only for components.
-//    $expr->setAttribute('value', $this->pathname);
-
     parent::__construct($expr, $variables, $only, $ignoreMissing, $lineno);
   }
 
