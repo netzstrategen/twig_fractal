@@ -42,11 +42,9 @@ class Component {
   /**
    * Constructs component class properties from a given Twig file handle.
    *
-   * @param $handle
-   *   The component handle to extract the parts for.
-   *   Example values:
-   *   - @foo/baz.twig
-   *   - @foo/baz--bar.twig
+   * @param string $handle
+   *   A component name handle from which to extract the group, name,
+   *   and variant; e.g., '@foo/bar.twig' or '@foo/bar--baz.twig'.
    */
   public function __construct(string $handle) {
     list($this->pathname, $this->name, $this->variants) = $this->extractParts($handle);

@@ -46,7 +46,7 @@ class Render extends Twig_TokenParser {
    *
    * @see Twig_TokenParser_Include::parse()
    */
-  public function parse(Twig_Token $token): \Twig_Node_Include {
+  public function parse(Twig_Token $token): Node\Render {
     $expr = $this->parser->getExpressionParser()->parseExpression();
     list($variables, $only, $ignoreMissing) = $this->parseArguments();
     return new Node\Render($expr, $variables, $only, $ignoreMissing, $token->getLine(), $this->getTag());
