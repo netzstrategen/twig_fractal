@@ -10,6 +10,12 @@ namespace Drupal\twig_fractal;
 use Drupal\Component\Utility\Html;
 use Symfony\Component\Yaml\Yaml;
 
+/**
+ * Prepares context variables for a Twig `render` node.
+ *
+ * Default component variables are recieved from a Fractal component definition
+ * file and merged with the existing `render` node context variables.
+ */
 class Component {
 
   /**
@@ -33,12 +39,11 @@ class Component {
    */
   protected $variants = [];
 
-  public function __construct($compound) {
-    list($this->pathname, $this->name, $this->variants) = $this->extractParts($compound);
-  }
-
-  public function __get($name) {
-    return $this->$name;
+  /**
+   * Constructs component class properties from a given Twig file handle.
+   */
+  public function __construct($handle) {
+    list($this->pathname, $this->name, $this->variants) = $this->extractParts($handle);
   }
 
   /**
@@ -48,14 +53,14 @@ class Component {
    *   The default variables of the component.
    */
   public function getDefaultVariables() {
-    $component_definition = $this->loadDefinition($this->pathname);
+    $component_definition = $this->loadDefinition($this->getPathname());
 
     $defaults = [];
     if (isset($component_definition['context'])) {
       $defaults = $this->mergeContext($defaults, $component_definition['context']);
     }
-    if (!empty($this->variants) && isset($component_definition['variants'])) {
-      foreach ($this->variants as $variant_modifier) {
+    if (!empty($this->getVariants()) && isset($component_definition['variants'])) {
+      foreach ($this->getVariants() as $variant_modifier) {
         if ($variant_defaults = $this->getVariantDefaultVariables($variant_modifier, $component_definition['variants'])) {
           $defaults = $this->mergeContext($defaults, $variant_defaults);
         }
@@ -186,6 +191,27 @@ class Component {
     $variants = explode('--', basename(basename($compound_name, '.twig'), '.html'));
     $component = array_shift($variants);
     return [$pathname, $component, $variants];
+  }
+
+  /**
+   * @return string
+   */
+  public function getPathname() {
+    return $this->pathname;
+  }
+
+  /**
+   * @return string
+   */
+  public function getName() {
+    return $this->name;
+  }
+
+  /**
+   * @return array
+   */
+  public function getVariants() {
+    return $this->variants;
   }
 
 }
