@@ -48,7 +48,7 @@ class Component {
    *   - @foo/baz.twig
    *   - @foo/baz--bar.twig
    */
-  public function __construct($handle) {
+  public function __construct(string $handle) {
     list($this->pathname, $this->name, $this->variants) = $this->extractParts($handle);
   }
 
@@ -58,7 +58,7 @@ class Component {
    * @return array
    *   The default variables of the component.
    */
-  public function getDefaultVariables() {
+  public function getDefaultVariables(): array {
     $component_definition = $this->loadDefinition($this->getPathname());
 
     $defaults = [];
@@ -90,7 +90,7 @@ class Component {
    * @return array
    *   The $base array merged with $override variables,
    */
-  protected function mergeContext(array $base, array $override) {
+  protected function mergeContext(array $base, array $override): array {
     foreach ($override as $name => $value) {
       // Any context variable containing "attributes" is considered a data array
       // for Drupal Attributes; e.g., title_attributes, author_attributes, etc.
@@ -122,7 +122,7 @@ class Component {
    * @return array
    *   The parsed component definition.
    */
-  protected function loadDefinition($pathname) {
+  protected function loadDefinition(string $pathname) {
     $definition_pathname = $this->getDefinitionFilePath($pathname);
     return Yaml::parse(file_get_contents($definition_pathname));
   }
@@ -138,7 +138,7 @@ class Component {
    * @return string
    *   The relative path for the component definition file.
    */
-  protected function getDefinitionFilePath($pathname) {
+  protected function getDefinitionFilePath(string $pathname): string {
     $library = \Drupal::service('twig.loader.componentlibrary');
     $path = pathinfo($library->getCacheKey($pathname));
     return $path['dirname'] . '/' . $path['filename'] . '.config.yml';
@@ -155,7 +155,7 @@ class Component {
    * @return array
    *   The variant default variables.
    */
-  protected function getVariantDefaultVariables($modifier, array $defined_variants) {
+  protected function getVariantDefaultVariables(string $modifier, array $defined_variants): array {
     // Check for a direct match in 'name' or the custom property 'modifier'.
     foreach ($defined_variants as $variant) {
       if ((isset($variant['name']) && $variant['name'] === $modifier) || (isset($variant['modifier']) && $variant['modifier'] === $modifier)) {
@@ -192,7 +192,7 @@ class Component {
    *   2. the component basename without variants
    *   3. a list of variants, if any.
    */
-  protected function extractParts($compound_name) {
+  protected function extractParts(string $compound_name): array {
     $pathname = preg_replace('@--[^.]+@', '', $compound_name);
     $variants = explode('--', basename(basename($compound_name, '.twig'), '.html'));
     $component = array_shift($variants);
@@ -202,21 +202,21 @@ class Component {
   /**
    * @return string
    */
-  public function getPathname() {
+  public function getPathname(): string {
     return $this->pathname;
   }
 
   /**
    * @return string
    */
-  public function getName() {
+  public function getName(): string {
     return $this->name;
   }
 
   /**
    * @return array
    */
-  public function getVariants() {
+  public function getVariants(): array {
     return $this->variants;
   }
 
