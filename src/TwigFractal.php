@@ -25,7 +25,7 @@ class TwigFractal extends Twig_Extension {
    * @return array
    *   The token parsers.
    */
-  public function getTokenParsers() {
+  public function getTokenParsers(): array {
     return [
       new Render(),
     ];
@@ -37,7 +37,7 @@ class TwigFractal extends Twig_Extension {
    * @return string
    *   The extension name.
    */
-  public function getName() {
+  public function getName(): string {
     return 'twig_fractal';
   }
 

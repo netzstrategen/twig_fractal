@@ -46,7 +46,7 @@ class Render extends Twig_TokenParser {
    *
    * @see Twig_TokenParser_Include::parse()
    */
-  public function parse(Twig_Token $token) {
+  public function parse(Twig_Token $token): Node\Render {
     $expr = $this->parser->getExpressionParser()->parseExpression();
     list($variables, $only, $ignoreMissing) = $this->parseArguments();
     return new Node\Render($expr, $variables, $only, $ignoreMissing, $token->getLine(), $this->getTag());
@@ -60,7 +60,7 @@ class Render extends Twig_TokenParser {
    *
    * @see Twig_TokenParser_Include::parseArguments()
    */
-  protected function parseArguments() {
+  protected function parseArguments(): array {
     $stream = $this->parser->getStream();
 
     $ignoreMissing = FALSE;
@@ -87,7 +87,7 @@ class Render extends Twig_TokenParser {
   /**
    * {@inheritdoc}
    */
-  public function getTag() {
+  public function getTag(): string {
     return 'render';
   }
 
