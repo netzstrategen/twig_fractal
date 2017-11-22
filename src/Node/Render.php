@@ -104,7 +104,8 @@ class Render extends Twig_Node_Include {
         continue;
       }
       // Remove variables that are not defined by the component.
-      unset($variables[$name]);
+      // @todo This accidentally removes nested keys (including attributes).
+      //unset($variables[$name]);
       if (!isset($defaults[$name])) {
         continue;
       }
