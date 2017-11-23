@@ -7,6 +7,7 @@
 
 namespace Drupal\twig_fractal\Node;
 
+use Drupal\Core\Template\Attribute;
 use Twig_Compiler;
 use Twig_Node_Expression;
 use Twig_Node_Include;
@@ -60,36 +61,7 @@ class Render extends Twig_Node_Include {
     else {
       $compiler->raw('$passed_variables = ')->subcompile($this->getNode('variables'))->raw(";\n");
       $compiler->raw('$variables = array_merge($defaults, $passed_variables)')->raw(";\n");
-      $compiler->raw(<<<'EOD'
-
-        foreach ($variables as $name => $value) {
-          if (FALSE === strpos($name, 'attributes')) {
-            continue;
-          }
-          unset($variables[$name]);
-          if (!isset($defaults[$name])) {
-            continue;
-          }
-          if (!isset($passed_variables[$name])) {
-            $variables[$name] = new \Drupal\Core\Template\Attribute($defaults[$name]);
-          }
-          else {
-            $variables[$name] = $passed_variables[$name];
-            if (!$variables[$name] instanceof \Drupal\Core\Template\Attribute) {
-              $variables[$name] = new \Drupal\Core\Template\Attribute($variables[$name]);
-            }
-            foreach ($defaults[$name] as $default_key => $default_value) {
-              if (!isset($variables[$name][$default_key])) {
-                $variables[$name]->setAttribute($default_key, $default_value);
-              }
-            }
-          }
-          if ($name === 'attributes' && isset($defaults[$name]['class'])) {
-            $variables[$name]->addClass($defaults[$name]['class']);
-          }
-        }
-EOD
-      );
+      $compiler->raw('$variables = \Drupal\twig_fractal\Node\Render::convertAttributes($variables, $defaults, $passed_variables)')->raw(";\n");
     }
     $compiler
       ->write('$this->loadTemplate(')
@@ -100,6 +72,62 @@ EOD
       ->repr($this->getTemplateLine())
       ->raw(')')
     ;
+  }
+
+  /**
+   * Recursively converts attributes variables into Attribute objects in context variables.
+   *
+   * @param array $variables
+   *   The pre-merged component variables.
+   * @param array $defaults
+   *   The default variables defined by the component.
+   * @param array $passed_variables
+   *   The custom variables passed to the component as render tag arguments.
+   *
+   * @return array
+   *   The $variables with recursively converted attributes variables.
+   */
+  public static function convertAttributes(array $variables, array $defaults, array $passed_variables) {
+    foreach ($variables as $name => $value) {
+      if (FALSE === strpos($name, 'attributes')) {
+        // Non-attributes variables do not need further processing as they have
+        // been merged recursively already, but they can contain attributes
+        // variables in nested keys.
+        if (is_array($value)) {
+          // The component may have defined an empty string as a placeholder for
+          // more complex dynamic content.
+          if (!isset($defaults[$name]) || !is_array($defaults[$name])) {
+            $defaults[$name] = [];
+          }
+          $variables[$name] = static::convertAttributes($value, $defaults[$name], $passed_variables[$name] ?? []);
+        }
+        continue;
+      }
+      // Remove variables that are not defined by the component.
+      // @todo This accidentally removes nested keys (including attributes).
+      //unset($variables[$name]);
+      if (!isset($defaults[$name])) {
+        continue;
+      }
+      if (!isset($passed_variables[$name])) {
+        $variables[$name] = new Attribute($defaults[$name]);
+      }
+      else {
+        $variables[$name] = $passed_variables[$name];
+        if (!$variables[$name] instanceof Attribute) {
+          $variables[$name] = new Attribute($variables[$name]);
+        }
+        foreach ($defaults[$name] as $default_key => $default_value) {
+          if (!isset($variables[$name][$default_key])) {
+            $variables[$name]->setAttribute($default_key, $default_value);
+          }
+        }
+      }
+      if ($name === 'attributes' && isset($defaults[$name]['class'])) {
+        $variables[$name]->addClass($defaults[$name]['class']);
+      }
+    }
+    return $variables;
   }
 
   /**
