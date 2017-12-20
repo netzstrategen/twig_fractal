@@ -20,28 +20,28 @@ use Symfony\Component\Yaml\Yaml;
 class Component {
 
   /**
-   * The pathname of the component.
+   * The pathname of the component to render.
    *
    * @var string
    */
   protected $pathname;
 
   /**
-   * The pathname of the compound component.
+   * The pathname of the component template to render (possibly including variant).
    *
    * @var string
    */
   protected $templatePathname;
 
   /**
-   * The name of the component.
+   * The name of the component to render.
    *
    * @var string
    */
   protected $name;
 
   /**
-   * The names of the variants.
+   * The names of the variants to render.
    *
    * @var array
    */
@@ -140,7 +140,8 @@ class Component {
   /**
    * Returns the relative file path of the Fractal YAML configuration file for a given component name.
    *
-   * Like Fractal, this implementation does not support separate configuration files per variant.
+   * Like Fractal, this implementation does not support separate configuration
+   * files per variant.
    *
    * The file extension must be `.config.yml`.
    *
@@ -192,26 +193,27 @@ class Component {
   }
 
   /**
-   * Returns the component's pathname, name, and a list of variants.
+   * Returns the component's pathname, template, name, and a list of variants.
    *
    * @param string $compound_name
    *   A compound name including the component and optionally variants, delimited
    *   by double-hyphens (`--`).
    *
    * @return array
-   *   An array with three elements:
+   *   An array with four elements:
    *   1. the component's pathname
-   *   2. the component's compound pathname
+   *   2. the component's template pathname
    *   3. the component basename without variants
    *   4. a list of variants, if any.
    */
   protected function extractParts(string $compound_name): array {
     $library = Drupal::service('twig.loader.componentlibrary');
     $pathname = preg_replace('@--[^.]+@', '', $compound_name);
-    $templatePathname = $library->exists($compound_name) ? $compound_name : $pathname;
+    $template_pathname = $library->exists($compound_name) ? $compound_name : $pathname;
+
     $variants = explode('--', basename(basename($compound_name, '.twig'), '.html'));
     $component = array_shift($variants);
-    return [$pathname, $templatePathname, $component, $variants];
+    return [$pathname, $template_pathname, $component, $variants];
   }
 
   /**
