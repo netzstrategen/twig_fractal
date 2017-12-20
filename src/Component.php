@@ -138,7 +138,7 @@ class Component {
   }
 
   /**
-   * Returns the relative file path of the Fractal YAML configuration file fora given component name.
+   * Returns the relative file path of the Fractal YAML configuration file for a given component name.
    *
    * Like Fractal, this implementation does not support separate configuration files per variant.
    *
@@ -207,12 +207,10 @@ class Component {
    */
   protected function extractParts(string $compound_name): array {
     $library = Drupal::service('twig.loader.componentlibrary');
+    $pathname = preg_replace('@--[^.]+@', '', $compound_name);
+    $templatePathname = $library->exists($compound_name) ? $compound_name : $pathname;
     $variants = explode('--', basename(basename($compound_name, '.twig'), '.html'));
     $component = array_shift($variants);
-    $pathname = $templatePathname = preg_replace('@--[^.]+@', '', $compound_name);
-    if ($library->exists($compound_name)) {
-      $templatePathname = $compound_name;
-    }
     return [$pathname, $templatePathname, $component, $variants];
   }
 
