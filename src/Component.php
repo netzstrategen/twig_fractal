@@ -129,7 +129,7 @@ class Component {
   /**
    * Returns the relative file path of the Fractal YAML configuration file for a given component name.
    *
-   * Since Fractal do not support file-based variant component configuration files, neither we do.
+   * Like Fractal, this implementation does not support separate configuration files per variant.
    *
    * The file extension must be `.config.yml`.
    *
@@ -183,7 +183,7 @@ class Component {
   /**
    * Returns the component's pathname, name, and a list of variants.
    *
-   * @param string $pathname
+   * @param string $compound_name
    *   A compound name including the component and optionally variants, delimited
    *   by double-hyphens (`--`).
    *
@@ -193,13 +193,16 @@ class Component {
    *   2. the component basename without variants
    *   3. a list of variants, if any.
    */
-  protected function extractParts(string $pathname): array {
+  protected function extractParts(string $compound_name): array {
     $library = Drupal::service('twig.loader.componentlibrary');
-    $variants = explode('--', basename(basename($pathname, '.twig'), '.html'));
+    $variants = explode('--', basename(basename($compound_name, '.twig'), '.html'));
     $component = array_shift($variants);
     // If no file-based variant template file exist use the base component otherwise.
-    if (!$library->exists($pathname)) {
-      $pathname = preg_replace('@--[^.]+@', '', $pathname);
+    if (!$library->exists($compound_name)) {
+      $pathname = preg_replace('@--[^.]+@', '', $compound_name);
+    }
+    else {
+      $pathname = $compound_name;
     }
     return [$pathname, $component, $variants];
   }
