@@ -93,7 +93,7 @@ EOD
     }
     $compiler
       ->write('$this->loadTemplate(')
-      ->raw('$component->getPathname()')
+      ->raw('$component->getTemplatePathname()')
       ->raw(', ')
       ->repr($this->getTemplateName())
       ->raw(', ')
