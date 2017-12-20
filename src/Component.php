@@ -7,6 +7,7 @@
 
 namespace Drupal\twig_fractal;
 
+use Drupal;
 use Drupal\Component\Utility\Html;
 use Symfony\Component\Yaml\Yaml;
 
@@ -24,6 +25,13 @@ class Component {
    * @var string
    */
   protected $pathname;
+
+  /**
+   * The pathname of the component template to render (possibly including variant).
+   *
+   * @var string
+   */
+  protected $templatePathname;
 
   /**
    * The name of the component to render.
@@ -47,7 +55,7 @@ class Component {
    *   and variant; e.g., '@foo/bar.twig' or '@foo/bar--baz.twig'.
    */
   public function __construct(string $handle) {
-    list($this->pathname, $this->name, $this->variants) = $this->extractParts($handle);
+    list($this->pathname, $this->templatePathname, $this->name, $this->variants) = $this->extractParts($handle);
   }
 
   /**
@@ -121,12 +129,19 @@ class Component {
    *   The parsed component definition.
    */
   protected function loadDefinition(string $pathname) {
+    $component_data = [];
     $definition_pathname = $this->getDefinitionFilePath($pathname);
-    return Yaml::parse(file_get_contents($definition_pathname));
+    if (file_exists($definition_pathname)) {
+      $component_data = Yaml::parse(file_get_contents($definition_pathname));
+    }
+    return $component_data;
   }
 
   /**
    * Returns the relative file path of the Fractal YAML configuration file for a given component name.
+   *
+   * Like Fractal, this implementation does not support separate configuration
+   * files per variant.
    *
    * The file extension must be `.config.yml`.
    *
@@ -137,7 +152,7 @@ class Component {
    *   The relative path for the component definition file.
    */
   protected function getDefinitionFilePath(string $pathname): string {
-    $library = \Drupal::service('twig.loader.componentlibrary');
+    $library = Drupal::service('twig.loader.componentlibrary');
     $path = pathinfo($library->getCacheKey($pathname));
     return $path['dirname'] . '/' . $path['filename'] . '.config.yml';
   }
@@ -178,23 +193,27 @@ class Component {
   }
 
   /**
-   * Returns the component's pathname, name, and a list of variants.
+   * Returns the component's pathname, template, name, and a list of variants.
    *
    * @param string $compound_name
    *   A compound name including the component and optionally variants, delimited
    *   by double-hyphens (`--`).
    *
    * @return array
-   *   An array with three elements:
+   *   An array with four elements:
    *   1. the component's pathname
-   *   2. the component basename without variants
-   *   3. a list of variants, if any.
+   *   2. the component's template pathname
+   *   3. the component basename without variants
+   *   4. a list of variants, if any.
    */
   protected function extractParts(string $compound_name): array {
+    $library = Drupal::service('twig.loader.componentlibrary');
     $pathname = preg_replace('@--[^.]+@', '', $compound_name);
+    $template_pathname = $library->exists($compound_name) ? $compound_name : $pathname;
+
     $variants = explode('--', basename(basename($compound_name, '.twig'), '.html'));
     $component = array_shift($variants);
-    return [$pathname, $component, $variants];
+    return [$pathname, $template_pathname, $component, $variants];
   }
 
   /**
@@ -202,6 +221,13 @@ class Component {
    */
   public function getPathname(): string {
     return $this->pathname;
+  }
+
+  /**
+   * @return string
+   */
+  public function getTemplatePathname(): string {
+    return $this->templatePathname;
   }
 
   /**
