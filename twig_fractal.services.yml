@@ -7,4 +7,5 @@ services:
       class: Drupal\twig_fractal\TwigLoader
       arguments: ['@app.root', '@module_handler', '@theme_handler']
       tags:
+        # twig.loader.componentlibrary is registered with 200
         - { name: twig.loader, priority: 201 }
