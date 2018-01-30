@@ -152,7 +152,7 @@ class Component {
    *   The relative path for the component definition file.
    */
   protected function getDefinitionFilePath(string $pathname): string {
-    $library = Drupal::service('twig.loader.componentlibrary');
+    $library = Drupal::service('twig.loader.twig_fractal');
     $path = pathinfo($library->getCacheKey($pathname));
     return $path['dirname'] . '/' . $path['filename'] . '.config.yml';
   }
