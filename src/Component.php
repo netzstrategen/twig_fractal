@@ -153,8 +153,8 @@ class Component {
    */
   protected function getDefinitionFilePath(string $pathname): string {
     $library = Drupal::service('twig.loader.twig_fractal');
-    $path = pathinfo($library->getCacheKey($pathname));
-    return $path['dirname'] . '/' . $path['filename'] . '.config.yml';
+    $pathinfo = pathinfo($pathname);
+    return $library->getCacheKey($pathinfo['dirname'] . '/' . $pathinfo['filename'] . '.config.yml');
   }
 
   /**
