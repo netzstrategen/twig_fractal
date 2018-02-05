@@ -30,7 +30,10 @@ class TwigLoader extends ComponentLibraryLoader {
     parent::__construct($paths, $module_handler, $theme_handler);
 
     $default_theme = $theme_handler->getTheme($theme_handler->getDefault());
-    if (!$default_theme->base_theme || !$base_theme = $theme_handler->getTheme($default_theme->base_theme)) {
+    if ($base_theme = $default_theme->base_theme) {
+      $base_theme = $theme_handler->getTheme($default_theme->base_theme);
+    }
+    if (!$base_theme || !isset($base_theme->info['component-libraries'])) {
       return;
     }
 
