@@ -3,3 +3,9 @@ services:
     class: Drupal\twig_fractal\TwigFractal
     tags:
       - { name: twig.extension }
+  twig.loader.twig_fractal:
+      class: Drupal\twig_fractal\TwigLoader
+      arguments: ['@app.root', '@module_handler', '@theme_handler']
+      tags:
+        # twig.loader.componentlibrary is registered with 200
+        - { name: twig.loader, priority: 210 }
