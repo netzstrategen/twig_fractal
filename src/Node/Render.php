@@ -123,7 +123,7 @@ class Render extends Twig_Node_Include {
           }
         }
       }
-      if ($name === 'attributes' && isset($defaults[$name]['class'])) {
+      if (FALSE !== strpos($name, 'attributes') && isset($defaults[$name]['class'])) {
         $variables[$name]->addClass($defaults[$name]['class']);
       }
     }
