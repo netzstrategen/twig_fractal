@@ -207,7 +207,7 @@ class Component {
    *   4. a list of variants, if any.
    */
   protected function extractParts(string $compound_name): array {
-    $library = Drupal::service('twig.loader.componentlibrary');
+    $library = Drupal::service('twig.loader.twig_fractal');
     $pathname = preg_replace('@--[^.]+@', '', $compound_name);
     $template_pathname = $library->exists($compound_name) ? $compound_name : $pathname;
 
