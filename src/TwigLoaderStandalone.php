@@ -26,15 +26,10 @@ class TwigLoaderStandalone extends FilesystemLoader {
    * {@inheritdoc}
    */
   public function __construct($templateDir = '') {
-    // parent::__construct([], $templateDir);
     parent::__construct();
     static::$instance = $this;
 
     $component_libraries = [
-      // 'atoms' => ['components/1-atoms'],
-      // 'molecules' => ['components/2-molecules'],
-      // 'organisms' => ['components/3-organisms'],
-      // 'templates' => ['components/4-templates'],
       'atoms' => [$templateDir . '/' . 'components/1-atoms'],
       'molecules' => [$templateDir . '/' . 'components/2-molecules'],
       'organisms' => [$templateDir . '/' . 'components/3-organisms'],
@@ -42,7 +37,6 @@ class TwigLoaderStandalone extends FilesystemLoader {
     ];
     foreach ($component_libraries as $namespace => $component_paths) {
       foreach ($component_paths as $path) {
-        // $this->prependPath($templateDir . '/' . $path, $namespace);
         $this->prependPath($path, $namespace);
       }
     }
