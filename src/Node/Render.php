@@ -52,7 +52,6 @@ class Render extends Twig_Node_Include {
    */
   protected function addGetTemplate(Twig_Compiler $compiler) {
     $compiler->raw('$component = new \Drupal\twig_fractal\Component(');
-    // $compiler->raw('$this->getEnvironment(), ');
     $compiler->subcompile($this->getNode('expr'));
     $compiler->raw(')')->raw(";\n");
     $compiler->raw('$defaults = $component->getDefaultVariables();');
