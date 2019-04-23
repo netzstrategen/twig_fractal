@@ -30,12 +30,12 @@ class TwigLoaderStandalone extends FilesystemLoader {
     static::$instance = $this;
 
     $component_libraries = [
-      'atoms' => [$templateDir . '/' . 'components/1-atoms'],
-      'molecules' => [$templateDir . '/' . 'components/2-molecules'],
-      'organisms' => [$templateDir . '/' . 'components/3-organisms'],
-      'templates' => [$templateDir . '/' . 'components/4-templates'],
-      'pages' => [$templateDir . '/' . 'components/9-pages'],
-      'assets' => [$templateDir . '/' . 'dist'],
+      'atoms' => [$templateDir . '/components/1-atoms'],
+      'molecules' => [$templateDir . '/components/2-molecules'],
+      'organisms' => [$templateDir . '/components/3-organisms'],
+      'templates' => [$templateDir . '/components/4-templates'],
+      'pages' => [$templateDir . '/components/9-pages'],
+      'assets' => [$templateDir . '/dist'],
     ];
     foreach ($component_libraries as $namespace => $component_paths) {
       foreach ($component_paths as $path) {
