@@ -30,11 +30,21 @@ use Twig_Node_Include;
  */
 class Render extends Twig_Node_Include {
 
+  protected static $env;
+
   /**
    * Constructs a Twig template to render.
    */
   public function __construct(Twig_Node_Expression $expr, Twig_Node_Expression $variables = NULL, $only = FALSE, $ignoreMissing = FALSE, $lineno, $tag = NULL) {
     parent::__construct($expr, $variables, $only, $ignoreMissing, $lineno);
+  }
+
+  protected function setEnvironment(\Twig_Environment $env) {
+    static::$env = $env;
+  }
+
+  public static function getEnvironment(): object {
+    return static::$env;
   }
 
   /**
@@ -51,7 +61,9 @@ class Render extends Twig_Node_Include {
    * @param \Twig_Compiler $compiler
    */
   protected function addGetTemplate(Twig_Compiler $compiler) {
+    $this->setEnvironment($compiler->getEnvironment());
     $compiler->raw('$component = new \Drupal\twig_fractal\Component(');
+    $compiler->raw('\Drupal\twig_fractal\Node\Render::getEnvironment(),');
     $compiler->subcompile($this->getNode('expr'));
     $compiler->raw(')')->raw(";\n");
     $compiler->raw('$defaults = $component->getDefaultVariables();');
