@@ -10,21 +10,13 @@ namespace Drupal\twig_fractal\NodeVisitors;
 use Twig_BaseNodeVisitor;
 use Twig_Environment;
 use Twig_Node;
-use Twig_Node_Expression_Filter;
 
 class Attributes extends Twig_BaseNodeVisitor {
 
-  protected $isAttribute = TRUE;
-
   /**
-   * Checks if a node contains an attributes name expression.
-   *
-   * @return Twig_Node The modified node
+   * {@inheritdoc}
    */
-  public function doEnterNode(Twig_Node $node, Twig_Environment $env): object {
-    if ($node->hasAttribute('name') && $node->getAttribute('name') === 'attributes') {
-      $this->isAttribute = TRUE;
-    }
+  public function doEnterNode(Twig_Node $node, Twig_Environment $env): Twig_Node {
     return $node;
   }
 
@@ -33,15 +25,36 @@ class Attributes extends Twig_BaseNodeVisitor {
    *
    * @return Twig_Node The modified node
    */
-  public function doLeaveNode(Twig_Node $node, Twig_Environment $env): object {
-    if ($this->isAttribute && $node instanceof Twig_Node_Expression_Filter && $node->hasNode('filter')) {
-      $filter = $node->getNode('filter');
-      if ($filter->hasAttribute('value') && $filter->getAttribute('value') === 'escape') {
-        $filter->setAttribute('value', 'default');
-      }
-      $this->isAttribute = FALSE;
+  public function doLeaveNode(Twig_Node $node, Twig_Environment $env): Twig_Node {
+    if (!$node->hasNode('expr')) {
+      return $node;
     }
+    $expr = $node->getNode('expr');
+    if (!$this->isAttributes($expr)) {
+      return $node;
+    }
+    if ($expr->hasNode('filter')) {
+      $filter = $expr->getNode('filter');
+      $filter->setAttribute('value', 'raw');
+      $expr->setNode('filter', $filter);
+    }
+    $node->setNode('expr', $expr);
     return $node;
+  }
+
+  /**
+   * Checks if the passed node is an attributes node.
+   *
+   * @return \Twig_Node|null
+   */
+  function isAttributes($node): ?Twig_Node {
+    if ($node->hasAttribute('name') && strpos($node->getAttribute('name'), 'attributes') !== FALSE) {
+      return $node;
+    }
+    elseif ($node->hasNode('node')) {
+      return $this->isAttributes($node->getNode('node'));
+    }
+    return NULL;
   }
 
   /**
