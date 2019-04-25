@@ -47,7 +47,7 @@ class Attributes extends Twig_BaseNodeVisitor {
    *
    * @return \Twig_Node|null
    */
-  function isAttributes($node): ?Twig_Node {
+  protected function isAttributes($node): ?Twig_Node {
     if ($node->hasAttribute('name') && strpos($node->getAttribute('name'), 'attributes') !== FALSE) {
       return $node;
     }
