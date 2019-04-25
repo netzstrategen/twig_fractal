@@ -21,7 +21,7 @@ class Attributes extends Twig_BaseNodeVisitor {
   }
 
   /**
-   * Removes the escape filter for attribute nodes.
+   * Changes the filter for attributes nodes to avoid quote escaping.
    *
    * @return Twig_Node The modified node
    */
