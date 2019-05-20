@@ -154,10 +154,16 @@ class Component {
    * @return string
    *   The relative path for the component definition file.
    */
-  protected function getDefinitionFilePath(string $pathname): string {
+  protected function getDefinitionFilePath(string $pathname): ?string {
     $loader = $this->env->getLoader();
     $pathinfo = pathinfo($pathname);
-    $filepath = $loader->getCacheKey($pathinfo['dirname'] . '/' . $pathinfo['filename'] . '.config.yml');
+    $config_path = $pathinfo['dirname'] . '/' . $pathinfo['filename'] . '.config.yml';
+    if ($loader->exists($config_path)) {
+      $filepath = $loader->getCacheKey($config_path);
+    }
+    else {
+      $filepath = NULL;
+    }
     return $filepath;
   }
 
