@@ -19,6 +19,8 @@ use Symfony\Component\Yaml\Yaml;
  */
 class Component {
 
+  protected $env;
+
   /**
    * The pathname of the component to render.
    *
@@ -54,7 +56,8 @@ class Component {
    *   A component name handle from which to extract the group, name,
    *   and variant; e.g., '@foo/bar.twig' or '@foo/bar--baz.twig'.
    */
-  public function __construct(string $handle) {
+  public function __construct(\Twig_Environment $env, string $handle) {
+    $this->env = $env;
     list($this->pathname, $this->templatePathname, $this->name, $this->variants) = $this->extractParts($handle);
   }
 
@@ -151,10 +154,17 @@ class Component {
    * @return string
    *   The relative path for the component definition file.
    */
-  protected function getDefinitionFilePath(string $pathname): string {
-    $library = Drupal::service('twig.loader.twig_fractal');
+  protected function getDefinitionFilePath(string $pathname): ?string {
+    $loader = $this->env->getLoader();
     $pathinfo = pathinfo($pathname);
-    return $library->getCacheKey($pathinfo['dirname'] . '/' . $pathinfo['filename'] . '.config.yml');
+    $config_path = $pathinfo['dirname'] . '/' . $pathinfo['filename'] . '.config.yml';
+    if ($loader->exists($config_path)) {
+      $filepath = $loader->getCacheKey($config_path);
+    }
+    else {
+      $filepath = NULL;
+    }
+    return $filepath;
   }
 
   /**
@@ -207,9 +217,9 @@ class Component {
    *   4. a list of variants, if any.
    */
   protected function extractParts(string $compound_name): array {
-    $library = Drupal::service('twig.loader.twig_fractal');
+    $loader = $this->env->getLoader();
     $pathname = preg_replace('@--[^.]+@', '', $compound_name);
-    $template_pathname = $library->exists($compound_name) ? $compound_name : $pathname;
+    $template_pathname = $loader->exists($compound_name) ? $compound_name : $pathname;
 
     $variants = explode('--', basename(basename($compound_name, '.twig'), '.html'));
     $component = array_shift($variants);

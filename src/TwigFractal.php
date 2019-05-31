@@ -8,6 +8,7 @@
 namespace Drupal\twig_fractal;
 
 use Drupal\twig_fractal\TokenParser\Render;
+use Drupal\twig_fractal\NodeVisitors\Attributes;
 use Twig_Extension;
 
 /**
@@ -28,6 +29,12 @@ class TwigFractal extends Twig_Extension {
   public function getTokenParsers(): array {
     return [
       new Render(),
+    ];
+  }
+
+  public function getNodeVisitors() {
+    return [
+      new Attributes(),
     ];
   }
 
