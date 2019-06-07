@@ -3,57 +3,6 @@
 This module enables you to build a living style guide based on Fractal components using the Twig templating language.
 It can either be used as a Drupal module or as a standalone Twig extension.
 
-## Installation
-Add the following in your project `composer.json` file:
-
-```json
-"repositories": [
-  {
-    "type": "vcs",
-    "url": "https://github.com/netzstrategen/twig-fractal"
-  }
-],
-"require": {
-  "drupal/twig-fractal": "dev-master"
-}
-```
-
-### Standalone
-
-Drupal Core did not split its components into separate repositories yet, so the files
-need to be retrieved manually from the main repository. As soon as a separate
-repositories for Drupal Components and Core become available, this workaround will be
-replaced with regular dependencies.
-
-1. As the extension relies on some Drupal functionalities we need to grab the necessary files and autoload them: 
-    ```json
-    "scripts": {
-      "pre-install-cmd": [
-        "php -r \"file_exists('vendor/drupal/core') || mkdir('vendor/drupal/core', 0775, TRUE);\"",
-        "curl -so vendor/drupal/core/Attribute.php https://raw.githubusercontent.com/drupal/drupal/8.6.x/core/lib/Drupal/Core/Template/Attribute.php",
-        "curl -so vendor/drupal/core/AttributeArray.php https://raw.githubusercontent.com/drupal/drupal/8.6.x/core/lib/Drupal/Core/Template/AttributeArray.php",
-        "curl -so vendor/drupal/core/AttributeBoolean.php https://raw.githubusercontent.com/drupal/drupal/8.6.x/core/lib/Drupal/Core/Template/AttributeBoolean.php",
-        "curl -so vendor/drupal/core/AttributeString.php https://raw.githubusercontent.com/drupal/drupal/8.6.x/core/lib/Drupal/Core/Template/AttributeString.php",
-        "curl -so vendor/drupal/core/AttributeValueBase.php https://raw.githubusercontent.com/drupal/drupal/8.6.x/core/lib/Drupal/Core/Template/AttributeValueBase.php",
-        "curl -so vendor/drupal/core/Html.php https://raw.githubusercontent.com/drupal/drupal/8.6.x/core/lib/Drupal/Component/Utility/Html.php",
-        "curl -so vendor/drupal/core/MarkupInterface.php https://raw.githubusercontent.com/drupal/drupal/8.6.x/core/lib/Drupal/Component/Render/MarkupInterface.php",
-        "curl -so vendor/drupal/core/PlainTextOutput.php https://raw.githubusercontent.com/drupal/drupal/8.6.x/core/lib/Drupal/Component/Render/PlainTextOutput.php"
-      ]
-    },
-    "autoload": {
-      "classmap": [
-        "vendor/drupal/core/"
-      ]
-    }
-    ```
-
-2. Register the Twig extension in your project:
-
-```
-// Add 'render' tag for pattern library components.
-$twig->addExtension(new \Drupal\twig_fractal\TwigFractal());
-``` 
-
 ## Features
 
 1. Consistency: Respect component definitions.
@@ -125,6 +74,56 @@ $twig->addExtension(new \Drupal\twig_fractal\TwigFractal());
     {% render '@atoms/button--primary--disabled.twig' with { label: 'Save' } %}
     ```
 
+## Installation
+Add the following in your project `composer.json` file:
+
+```json
+"repositories": [
+  {
+    "type": "vcs",
+    "url": "https://github.com/netzstrategen/twig-fractal"
+  }
+],
+"require": {
+  "drupal/twig-fractal": "dev-master"
+}
+```
+
+### Standalone
+
+Drupal Core did not split its components into separate repositories yet, so the files
+need to be retrieved manually from the main repository. As soon as a separate
+repositories for Drupal Components and Core become available, this workaround will be
+replaced with regular dependencies.
+
+1. As the extension relies on some Drupal functionalities we need to grab the necessary files and autoload them: 
+    ```json
+    "scripts": {
+      "pre-install-cmd": [
+        "php -r \"file_exists('vendor/drupal/core') || mkdir('vendor/drupal/core', 0775, TRUE);\"",
+        "curl -so vendor/drupal/core/Attribute.php https://raw.githubusercontent.com/drupal/drupal/8.6.x/core/lib/Drupal/Core/Template/Attribute.php",
+        "curl -so vendor/drupal/core/AttributeArray.php https://raw.githubusercontent.com/drupal/drupal/8.6.x/core/lib/Drupal/Core/Template/AttributeArray.php",
+        "curl -so vendor/drupal/core/AttributeBoolean.php https://raw.githubusercontent.com/drupal/drupal/8.6.x/core/lib/Drupal/Core/Template/AttributeBoolean.php",
+        "curl -so vendor/drupal/core/AttributeString.php https://raw.githubusercontent.com/drupal/drupal/8.6.x/core/lib/Drupal/Core/Template/AttributeString.php",
+        "curl -so vendor/drupal/core/AttributeValueBase.php https://raw.githubusercontent.com/drupal/drupal/8.6.x/core/lib/Drupal/Core/Template/AttributeValueBase.php",
+        "curl -so vendor/drupal/core/Html.php https://raw.githubusercontent.com/drupal/drupal/8.6.x/core/lib/Drupal/Component/Utility/Html.php",
+        "curl -so vendor/drupal/core/MarkupInterface.php https://raw.githubusercontent.com/drupal/drupal/8.6.x/core/lib/Drupal/Component/Render/MarkupInterface.php",
+        "curl -so vendor/drupal/core/PlainTextOutput.php https://raw.githubusercontent.com/drupal/drupal/8.6.x/core/lib/Drupal/Component/Render/PlainTextOutput.php"
+      ]
+    },
+    "autoload": {
+      "classmap": [
+        "vendor/drupal/core/"
+      ]
+    }
+    ```
+
+2. Register the Twig extension in your project:
+
+```
+// Add 'render' tag for pattern library components.
+$twig->addExtension(new \Drupal\twig_fractal\TwigFractal());
+```
 
 ## Recommended packages
 
