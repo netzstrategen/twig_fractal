@@ -75,6 +75,7 @@ It can either be used as a Drupal module or as a standalone Twig extension.
     ```
 
 ## Installation
+
 Add the following in your project `composer.json` file:
 
 ```json
@@ -96,7 +97,9 @@ need to be retrieved manually from the main repository. As soon as a separate
 repositories for Drupal Components and Core become available, this workaround will be
 replaced with regular dependencies.
 
-1. As the extension relies on some Drupal functionalities we need to grab the necessary files and autoload them: 
+1. As the extension relies on some Drupal functionalities we need to grab the necessary
+   files and autoload them: 
+
     ```json
     "scripts": {
       "pre-install-cmd": [
@@ -120,10 +123,10 @@ replaced with regular dependencies.
 
 2. Register the Twig extension in your project:
 
-```
-// Add 'render' tag for pattern library components.
-$twig->addExtension(new \Drupal\twig_fractal\TwigFractal());
-```
+    ```
+    // Add 'render' tag for pattern library components.
+    $twig->addExtension(new \Drupal\twig_fractal\TwigFractal());
+    ```
 
 ## Recommended packages
 
