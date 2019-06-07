@@ -5,6 +5,7 @@ It can either be used as a Drupal module or as a standalone Twig extension.
 
 ## Installation
 Add the following in your project `composer.json` file:
+
 ```json
 "repositories": [
   {
