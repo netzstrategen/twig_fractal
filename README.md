@@ -22,7 +22,7 @@ Add the following in your project `composer.json` file:
     ```json
     "scripts": {
       "pre-install-cmd": [
-        "php -r 'file_exists(\"vendor/drupal/core\") || mkdir(\"vendor/drupal/core\", 0775, TRUE);'",
+        "php -r \"file_exists('vendor/drupal/core') || mkdir('vendor/drupal/core', 0775, TRUE);\"",
         "curl -so vendor/drupal/core/Attribute.php https://raw.githubusercontent.com/drupal/drupal/8.6.x/core/lib/Drupal/Core/Template/Attribute.php",
         "curl -so vendor/drupal/core/AttributeArray.php https://raw.githubusercontent.com/drupal/drupal/8.6.x/core/lib/Drupal/Core/Template/AttributeArray.php",
         "curl -so vendor/drupal/core/AttributeBoolean.php https://raw.githubusercontent.com/drupal/drupal/8.6.x/core/lib/Drupal/Core/Template/AttributeBoolean.php",
