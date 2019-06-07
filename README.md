@@ -18,6 +18,12 @@ Add the following in your project `composer.json` file:
 ```
 
 ### Standalone
+
+Drupal Core did not split its components into separate repositories yet, so the files
+need to be retrieved manually from the main repository. As soon as a separate
+repositories for Drupal Components and Core become available, this workaround will be
+replaced with regular dependencies.
+
 1. As the extension relies on some Drupal functionalities we need to grab the necessary files and autoload them: 
     ```json
     "scripts": {
