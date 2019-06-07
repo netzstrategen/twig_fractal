@@ -81,11 +81,11 @@ Add the following in your project `composer.json` file:
 "repositories": [
   {
     "type": "vcs",
-    "url": "https://github.com/netzstrategen/twig-fractal"
+    "url": "https://github.com/netzstrategen/twig_fractal"
   }
 ],
 "require": {
-  "drupal/twig-fractal": "dev-master"
+  "drupal/twig_fractal": "dev-master"
 }
 ```
 
