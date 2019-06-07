@@ -120,10 +120,10 @@ replaced with regular dependencies.
 
 2. Register the Twig extension in your project:
 
-```
-// Add 'render' tag for pattern library components.
-$twig->addExtension(new \Drupal\twig_fractal\TwigFractal());
-```
+    ```
+    // Add 'render' tag for pattern library components.
+    $twig->addExtension(new \Drupal\twig_fractal\TwigFractal());
+    ```
 
 ## Recommended packages
 
