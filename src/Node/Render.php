@@ -67,14 +67,15 @@ class Render extends Twig_Node_Include {
     $compiler->subcompile($this->getNode('expr'));
     $compiler->raw(')')->raw(";\n");
     $compiler->raw('$defaults = $component->getDefaultVariables();');
+    $compiler->raw('$passed_variables = [];');
     if (!$this->hasNode('variables')) {
       $compiler->raw('$variables = $defaults')->raw(";\n");
     }
     else {
       $compiler->raw('$passed_variables = ')->subcompile($this->getNode('variables'))->raw(";\n");
       $compiler->raw('$variables = array_merge($defaults, $passed_variables)')->raw(";\n");
-      $compiler->raw('$variables = \Drupal\twig_fractal\Node\Render::convertAttributes($variables, $defaults, $passed_variables)')->raw(";\n");
     }
+    $compiler->raw('$variables = \Drupal\twig_fractal\Node\Render::convertAttributes($variables, $defaults, $passed_variables)')->raw(";\n");
     $compiler
       ->write('$this->loadTemplate(')
       ->raw('$component->getTemplatePathname()')
