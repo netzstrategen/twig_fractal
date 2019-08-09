@@ -62,12 +62,19 @@ class Render extends Twig_Node_Include {
    */
   protected function addGetTemplate(Twig_Compiler $compiler) {
     $this->setEnvironment($compiler->getEnvironment());
-    $compiler->raw('$component = new \Drupal\twig_fractal\Component(');
-    $compiler->raw('\Drupal\twig_fractal\Node\Render::getEnvironment(),');
-    $compiler->subcompile($this->getNode('expr'));
-    $compiler->raw(')')->raw(";\n");
-    $compiler->raw('$defaults = $component->getDefaultVariables();');
-    $compiler->raw('$passed_variables = [];');
+    $compiler->raw('$handles = (array) ')->subcompile($this->getNode('expr'))->raw(';');
+    $compiler->raw('foreach($handles as $handle):');
+      $compiler->raw('$passed_variables = $defaults = [];');
+      $compiler->raw('$component = new \Drupal\twig_fractal\Component(');
+      $compiler->raw('\Drupal\twig_fractal\Node\Render::getEnvironment(),');
+      $compiler->raw('$handle');
+      $compiler->raw(')')->raw(";\n");
+      // Exit loop when component is found to not look further.
+      $compiler->raw('if ($component->getDefinitionFilePath($component->getPathname())):');
+        $compiler->raw('$defaults = $component->getDefaultVariables();');
+        $compiler->raw('break;');
+      $compiler->raw('endif;');
+    $compiler->raw('endforeach;');
     if (!$this->hasNode('variables')) {
       $compiler->raw('$variables = $defaults')->raw(";\n");
     }

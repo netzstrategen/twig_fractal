@@ -68,9 +68,11 @@ class Component {
    *   The default variables of the component.
    */
   public function getDefaultVariables(): array {
-    $component_definition = $this->loadDefinition($this->getPathname());
-
     $defaults = [];
+    if (!$definition_pathname = $this->getDefinitionFilePath($this->getPathname())) {
+      return $defaults;
+    }
+    $component_definition = $this->loadDefinition($definition_pathname);
     if (isset($component_definition['context'])) {
       $defaults = $this->mergeContext($defaults, $component_definition['context']);
     }
@@ -125,17 +127,16 @@ class Component {
   /**
    * Loads the Fractal YAML component definition file.
    *
-   * @param string $pathname
-   *   The pathname of the component's template file.
+   * @param string $definition_file_path
+   *   The file path of the component's definition file.
    *
    * @return array
-   *   The parsed component definition.
+   *   The loaded and parsed component definition.
    */
-  protected function loadDefinition(string $pathname) {
+  protected function loadDefinition(string $definition_file_path) {
     $component_data = [];
-    $definition_pathname = $this->getDefinitionFilePath($pathname);
-    if (file_exists($definition_pathname)) {
-      $component_data = Yaml::parse(file_get_contents($definition_pathname));
+    if (file_exists($definition_file_path)) {
+      $component_data = Yaml::parse(file_get_contents($definition_file_path));
     }
     return $component_data;
   }
@@ -154,7 +155,7 @@ class Component {
    * @return string
    *   The relative path for the component definition file.
    */
-  protected function getDefinitionFilePath(string $pathname): ?string {
+  public function getDefinitionFilePath($pathname): ?string {
     $loader = $this->env->getLoader();
     $pathinfo = pathinfo($pathname);
     $config_path = $pathinfo['dirname'] . '/' . $pathinfo['filename'] . '.config.yml';
