@@ -19,6 +19,12 @@ It can either be used as a Drupal module or as a standalone Twig extension.
     {% render '@atoms/button.twig' with { name: 'submit' } %}
 
     {% render '@atoms/button--primary.twig' with { label: 'Save' } %}
+
+    {% render [
+      '@pages/section-foo.twig',
+      '@pages/section-bar.twig',
+      '@pages/section-baz.twig',
+    ] %}
     ```
 
     By design, the class name of a component or variant cannot be removed, it

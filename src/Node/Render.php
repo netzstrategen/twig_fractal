@@ -66,8 +66,8 @@ class Render extends Twig_Node_Include {
     $compiler->raw('foreach($handles as $handle):');
       $compiler->raw('$passed_variables = $defaults = [];');
       $compiler->raw('$component = new \Drupal\twig_fractal\Component(');
-      $compiler->raw('\Drupal\twig_fractal\Node\Render::getEnvironment(),');
-      $compiler->raw('$handle');
+        $compiler->raw('\Drupal\twig_fractal\Node\Render::getEnvironment(),');
+        $compiler->raw('$handle');
       $compiler->raw(')')->raw(";\n");
       // Exit loop when component is found to not look further.
       $compiler->raw('if ($component->getDefinitionFilePath($component->getPathname())):');
@@ -85,11 +85,11 @@ class Render extends Twig_Node_Include {
     $compiler->raw('$variables = \Drupal\twig_fractal\Node\Render::convertAttributes($variables, $defaults, $passed_variables)')->raw(";\n");
     $compiler
       ->write('$this->loadTemplate(')
-      ->raw('$component->getTemplatePathname()')
-      ->raw(', ')
-      ->repr($this->getTemplateName())
-      ->raw(', ')
-      ->repr($this->getTemplateLine())
+        ->raw('$component->getTemplatePathname()')
+        ->raw(', ')
+        ->repr($this->getTemplateName())
+        ->raw(', ')
+        ->repr($this->getTemplateLine())
       ->raw(')')
     ;
   }
