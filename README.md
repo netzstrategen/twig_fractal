@@ -24,9 +24,7 @@ It can either be used as a Drupal module or as a standalone Twig extension.
       '@pages/section--trythis.twig',
       '@pages/section--alternative.twig',
       '@pages/section.twig',
-    ] %}
-    
-    
+    ] %} 
     ```
 
     By design, the class name of a component or variant cannot be removed, it
