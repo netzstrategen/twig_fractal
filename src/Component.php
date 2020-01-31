@@ -142,6 +142,18 @@ class Component {
   }
 
   /**
+   * Returns the array of variants from the component configuration file.
+   *
+   * @return array
+   *   The loaded component variants.
+   */
+  public function getComponentVariants(): array {
+    $definition_pathname = $this->getDefinitionFilePath($this->getPathname());
+    $component_definition = $this->loadDefinition($definition_pathname);
+    return array_column($component_definition['variants'], 'name', 'name');
+  }
+
+  /**
    * Returns the relative file path of the Fractal YAML configuration file for a given component name.
    *
    * Like Fractal, this implementation does not support separate configuration
