@@ -147,7 +147,7 @@ class Component {
    * @return array
    *   The loaded component variants.
    */
-  public function getComponentVariants(): array {
+  public function getConfigVariants(): array {
     $definition_pathname = $this->getDefinitionFilePath($this->getPathname());
     $component_definition = $this->loadDefinition($definition_pathname);
     return array_column($component_definition['variants'], 'name', 'name');
