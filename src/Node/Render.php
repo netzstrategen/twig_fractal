@@ -43,7 +43,7 @@ class Render extends Twig_Node_Include {
     static::$env = $env;
   }
 
-  public static function getEnvironment(): object {
+  public static function getEnvironment(): \Twig_Environment {
     return static::$env;
   }
 
