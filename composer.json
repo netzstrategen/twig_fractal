@@ -17,5 +17,14 @@
     "psr-4": {
       "Drupal\\twig_fractal\\": "src/"
     }
+  },
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "https://github.com/netzstrategen/drupal-attributes"
+    }
+  ],
+  "require": {
+    "netzstrategen/drupal-attributes": "dev-master"
   }
 }
