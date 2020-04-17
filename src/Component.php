@@ -205,11 +205,13 @@ class Component {
     // E.g. `foo--baz-bar` will look for `Baz Bar` or `baz-bar` in
     // the `variants` key in `foo.config.yml`.
     foreach ($defined_variants as $variant) {
-      if (strtolower(Html::cleanCssIdentifier($variant['name'])) === $modifier) {
-        if (isset($variant['context'])) {
-          return $variant['context'];
+      if (isset($variant['name'])) {
+        if (strtolower(Html::cleanCssIdentifier($variant['name'])) === $modifier) {
+          if (isset($variant['context'])) {
+            return $variant['context'];
+          }
+          break;
         }
-        break;
       }
     }
     return [];
