@@ -7,6 +7,7 @@
 
 namespace Drupal\twig_fractal;
 
+use Drupal\Core\Template\Attribute;
 use Drupal\twig_fractal\TokenParser\Render;
 use Drupal\twig_fractal\NodeVisitors\Attributes;
 use Twig_Extension;
@@ -38,6 +39,12 @@ class TwigFractal extends Twig_Extension {
     ];
   }
 
+  public function getFunctions() {
+    return [
+      new \Twig_SimpleFunction('create_attribute', [$this, 'createAttribute']),
+    ];
+  }
+
   /**
    * Returns the extension name.
    *
@@ -46,6 +53,20 @@ class TwigFractal extends Twig_Extension {
    */
   public function getName(): string {
     return 'twig_fractal';
+  }
+
+  /**
+   * Creates an Attribute object.
+   *
+   * @param array $attributes
+   *   (optional) An associative array of key-value pairs to be converted to
+   *   HTML attributes.
+   *
+   * @return \Drupal\Core\Template\Attribute
+   *   An attributes object that has the given attributes.
+   */
+  public function createAttribute(array $attributes = []) {
+    return new Attribute($attributes);
   }
 
 }
