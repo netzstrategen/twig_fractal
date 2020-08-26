@@ -33,6 +33,13 @@ class Render extends Twig_Node_Include {
   protected static $env;
 
   /**
+   * Pre-render callback.
+   *
+   * @var Callable
+   */
+  private static $preRenderCallback;
+
+  /**
    * Constructs a Twig template to render.
    */
   public function __construct(Twig_Node_Expression $expr, Twig_Node_Expression $variables = NULL, $only = FALSE, $ignoreMissing = FALSE, $lineno, $tag = NULL) {
@@ -84,6 +91,7 @@ class Render extends Twig_Node_Include {
       $compiler->raw('$passed_variables = ')->subcompile($this->getNode('variables'))->raw(";\n");
       $compiler->raw('$variables = array_merge($defaults, $passed_variables)')->raw(";\n");
     }
+    $compiler->raw('\Drupal\twig_fractal\Node\Render::doPreRenderCallback($component->getPathname(), $component->getName())')->raw(";\n");
     $compiler->raw('$variables = \Drupal\twig_fractal\Node\Render::convertAttributes($variables, $defaults, $passed_variables)')->raw(";\n");
     $compiler
       ->write('$this->loadTemplate(')
@@ -159,6 +167,37 @@ class Render extends Twig_Node_Include {
    */
   protected function addTemplateArguments(Twig_Compiler $compiler) {
     $compiler->raw('$variables');
+  }
+
+  /**
+   * Sets the pre-render callback function.
+   *
+   * @param callable $callback
+   *   The callable must accept 2 arguments.
+   */
+  public static function setPreRenderCallback(callable $callback): void {
+    static::$preRenderCallback = $callback;
+  }
+
+  /**
+   * Execute the pre-render callback function if present.
+   *
+   * @param string $path
+   *   Component path name, including alias.
+   * @param string $name
+   *   Component name.
+   */
+  public static function doPreRenderCallback(string $path, string $name): void {
+    $callback = static::$preRenderCallback ?? NULL;
+    if (!$callback) {
+      return;
+    }
+    try {
+      $callback($path, $name);
+    }
+    catch (\Exception $e) {
+      return;
+    }
   }
 
 }
