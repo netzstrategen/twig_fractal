@@ -51,7 +51,14 @@ class Render extends Twig_Node_Include {
   }
 
   public static function getEnvironment(): \Twig_Environment {
-    return static::$env;
+    $env = static::$env;
+    if (!$env) {
+      $loader = \Drupal::service('twig.loader.twig_fractal');
+      $env = new \Twig\Environment($loader);
+
+    }
+    return $env;
+
   }
 
   /**
@@ -69,43 +76,50 @@ class Render extends Twig_Node_Include {
    */
   protected function addGetTemplate(Twig_Compiler $compiler) {
     $this->setEnvironment($compiler->getEnvironment());
-    $compiler->raw('$handles = (array) ')->subcompile($this->getNode('expr'))->raw(';');
+    $compiler->raw('$handles = (array) ')
+      ->subcompile($this->getNode('expr'))
+      ->raw(';');
     $compiler->raw('$templates = [];');
     $compiler->raw('foreach($handles as $handle):');
-      $compiler->raw('$passed_variables = $defaults = [];');
-      $compiler->raw('$component = new \Drupal\twig_fractal\Component(');
-        $compiler->raw('\Drupal\twig_fractal\Node\Render::getEnvironment(),');
-        $compiler->raw('$handle');
-      $compiler->raw(')')->raw(";\n");
-      $compiler->raw('$templates[] = $component->getTemplatePathname();');
-      // Exit loop when component is found to not look further.
-      $compiler->raw('if ($component->getDefinitionFilePath($component->getPathname())):');
-        $compiler->raw('$defaults = $component->getDefaultVariables();');
-        $compiler->raw('break;');
-      $compiler->raw('endif;');
+    $compiler->raw('$passed_variables = $defaults = [];');
+    $compiler->raw('$component = new \Drupal\twig_fractal\Component(');
+    $compiler->raw('\Drupal\twig_fractal\Node\Render::getEnvironment(),');
+    $compiler->raw('$handle');
+    $compiler->raw(')')->raw(";\n");
+    $compiler->raw('$templates[] = $component->getTemplatePathname();');
+    // Exit loop when component is found to not look further.
+    $compiler->raw('if ($component->getDefinitionFilePath($component->getPathname())):');
+    $compiler->raw('$defaults = $component->getDefaultVariables();');
+    $compiler->raw('break;');
+    $compiler->raw('endif;');
     $compiler->raw('endforeach;');
     if (!$this->hasNode('variables')) {
       $compiler->raw('$variables = $defaults')->raw(";\n");
     }
     else {
-      $compiler->raw('$passed_variables = ')->subcompile($this->getNode('variables'))->raw(";\n");
-      $compiler->raw('$variables = array_merge($defaults, $passed_variables)')->raw(";\n");
+      $compiler->raw('$passed_variables = ')
+        ->subcompile($this->getNode('variables'))
+        ->raw(";\n");
+      $compiler->raw('$variables = array_merge($defaults, $passed_variables)')
+        ->raw(";\n");
     }
-    $compiler->raw('\Drupal\twig_fractal\Node\Render::doPreRenderCallback($component->getPathname(), $component->getName())')->raw(";\n");
-    $compiler->raw('$variables = \Drupal\twig_fractal\Node\Render::convertAttributes($variables, $defaults, $passed_variables)')->raw(";\n");
+    $compiler->raw('\Drupal\twig_fractal\Node\Render::doPreRenderCallback($component->getPathname(), $component->getName())')
+      ->raw(";\n");
+    $compiler->raw('$variables = \Drupal\twig_fractal\Node\Render::convertAttributes($variables, $defaults, $passed_variables)')
+      ->raw(";\n");
     $compiler
       ->write('$this->loadTemplate(')
-        ->raw('$templates')
-        ->raw(', ')
-        ->repr($this->getTemplateName())
-        ->raw(', ')
-        ->repr($this->getTemplateLine())
-      ->raw(')')
-    ;
+      ->raw('$templates')
+      ->raw(', ')
+      ->repr($this->getTemplateName())
+      ->raw(', ')
+      ->repr($this->getTemplateLine())
+      ->raw(')');
   }
 
   /**
-   * Recursively converts attributes variables into Attribute objects in context variables.
+   * Recursively converts attributes variables into Attribute objects in
+   * context variables.
    *
    * @param array $variables
    *   The pre-merged component variables.
@@ -161,7 +175,8 @@ class Render extends Twig_Node_Include {
   }
 
   /**
-   * Passes the precompiled template variables to the Twig PHP template display method.
+   * Passes the precompiled template variables to the Twig PHP template display
+   * method.
    *
    * @param \Twig_Compiler $compiler
    */
@@ -194,8 +209,7 @@ class Render extends Twig_Node_Include {
     }
     try {
       $callback($path, $name);
-    }
-    catch (\Exception $e) {
+    } catch (\Exception $e) {
       return;
     }
   }

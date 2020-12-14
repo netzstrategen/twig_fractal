@@ -2,10 +2,10 @@ services:
   twig.extension.twig_fractal:
     class: Drupal\twig_fractal\TwigFractal
     tags:
-      - { name: twig.extension }
+      - { name: twig.extension , priority: 220 }
   twig.loader.twig_fractal:
-      class: Drupal\twig_fractal\TwigLoader
-      arguments: ['@app.root', '@module_handler', '@theme_handler']
-      tags:
-        # twig.loader.componentlibrary is registered with 200
-        - { name: twig.loader, priority: 210 }
+    class: Drupal\twig_fractal\TwigLoader
+    arguments: [ '@theme_handler','@components.info', '@theme.manager' ]
+    tags:
+      # twig.loader.componentlibrary is registered with 200
+      - { name: twig.loader, priority: 210 }

@@ -29,7 +29,8 @@ class Component {
   protected $pathname;
 
   /**
-   * The pathname of the component template to render (possibly including variant).
+   * The pathname of the component template to render (possibly including
+   * variant).
    *
    * @var string
    */
@@ -58,7 +59,12 @@ class Component {
    */
   public function __construct(\Twig_Environment $env, string $handle) {
     $this->env = $env;
-    list($this->pathname, $this->templatePathname, $this->name, $this->variants) = $this->extractParts($handle);
+    [
+      $this->pathname,
+      $this->templatePathname,
+      $this->name,
+      $this->variants,
+    ] = $this->extractParts($handle);
   }
 
   /**
@@ -154,7 +160,8 @@ class Component {
   }
 
   /**
-   * Returns the relative file path of the Fractal YAML configuration file for a given component name.
+   * Returns the relative file path of the Fractal YAML configuration file for
+   * a given component name.
    *
    * Like Fractal, this implementation does not support separate configuration
    * files per variant.
@@ -177,6 +184,7 @@ class Component {
     else {
       $filepath = NULL;
     }
+
     return $filepath;
   }
 
@@ -219,8 +227,8 @@ class Component {
    * Returns the component's pathname, template, name, and a list of variants.
    *
    * @param string $compound_name
-   *   A compound name including the component and optionally variants, delimited
-   *   by double-hyphens (`--`).
+   *   A compound name including the component and optionally variants,
+   *   delimited by double-hyphens (`--`).
    *
    * @return array
    *   An array with four elements:
@@ -231,6 +239,14 @@ class Component {
    */
   protected function extractParts(string $compound_name): array {
     $loader = $this->env->getLoader();
+    if (stripos($compound_name, '@') !== FALSE && stripos($compound_name, '.twig') === FALSE) {
+      $exploded_paths = explode('/', $compound_name);
+      $exploded_paths = array_filter($exploded_paths);
+      $last_part = $exploded_paths[count($exploded_paths) - 1];
+      $last_part = str_replace('@', '', $last_part);
+      $compound_name .= '/' . $last_part . '.twig';
+    }
+
     $pathname = preg_replace('@--[^.]+@', '', $compound_name);
     $template_pathname = $loader->exists($compound_name) ? $compound_name : $pathname;
 

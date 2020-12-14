@@ -8,9 +8,11 @@
 namespace Drupal\twig_fractal;
 
 use Drupal;
-use Drupal\components\Template\Loader\ComponentLibraryLoader;
+use Drupal\components\Template\ComponentsInfo;
+use Drupal\components\Template\Loader\ComponentsLoader;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Extension\ThemeHandlerInterface;
+use Drupal\Core\Theme\ThemeManagerInterface;
 
 /**
  * Allows a subtheme to override Fractal components of its base theme.
@@ -21,13 +23,15 @@ use Drupal\Core\Extension\ThemeHandlerInterface;
  *
  * @see http://symfony.com/doc/current/templating/namespaced_paths.html#multiple-paths-per-namespace
  */
-class TwigLoader extends ComponentLibraryLoader {
+class TwigLoader extends ComponentsLoader {
 
   /**
    * {@inheritdoc}
    */
-  public function __construct($paths = [], ModuleHandlerInterface $module_handler, ThemeHandlerInterface $theme_handler) {
-    parent::__construct($paths, $module_handler, $theme_handler);
+  public function __construct(ThemeHandlerInterface $theme_handler,ComponentsInfo $components_info,
+                              ThemeManagerInterface $theme_manager) {
+
+    parent::__construct($components_info, $theme_manager);
 
     $default_theme = $theme_handler->getTheme($theme_handler->getDefault());
     if ($base_theme = $default_theme->base_theme) {
