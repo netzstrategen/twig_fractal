@@ -1,7 +1,8 @@
 name: Twig Fractal Integration
 description: Reuse Fractal components and variants in Drupal without duplicating their parameters and variables.
 type: module
-core_version_requirement: ^8.8.0 || ^9.0
+core: 8.x
+core_version_requirement: ^8 || ^9
 php: 7.x
 dependencies:
   - components
