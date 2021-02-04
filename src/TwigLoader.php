@@ -8,7 +8,7 @@
 namespace Drupal\twig_fractal;
 
 use Drupal;
-use Drupal\components\Template\ComponentsInfo;
+use Drupal\components\Template\ComponentsRegistry;
 use Drupal\components\Template\Loader\ComponentsLoader;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Extension\ThemeHandlerInterface;
@@ -28,10 +28,10 @@ class TwigLoader extends ComponentsLoader {
   /**
    * {@inheritdoc}
    */
-  public function __construct(ThemeHandlerInterface $theme_handler,ComponentsInfo $components_info,
+  public function __construct(ThemeHandlerInterface $theme_handler,ComponentsRegistry $components_registry,
                               ThemeManagerInterface $theme_manager) {
 
-    parent::__construct($components_info, $theme_manager);
+    parent::__construct($components_registry);
 
     $default_theme = $theme_handler->getTheme($theme_handler->getDefault());
     if ($base_theme = $default_theme->base_theme) {
