@@ -29,8 +29,7 @@ class Component {
   protected $pathname;
 
   /**
-   * The pathname of the component template to render (possibly including
-   * variant).
+   * The pathname of the component template to render (possibly including variant).
    *
    * @var string
    */
@@ -59,12 +58,7 @@ class Component {
    */
   public function __construct(\Twig_Environment $env, string $handle) {
     $this->env = $env;
-    [
-      $this->pathname,
-      $this->templatePathname,
-      $this->name,
-      $this->variants,
-    ] = $this->extractParts($handle);
+    list($this->pathname, $this->templatePathname, $this->name, $this->variants) = $this->extractParts($handle);
   }
 
   /**
@@ -160,8 +154,7 @@ class Component {
   }
 
   /**
-   * Returns the relative file path of the Fractal YAML configuration file for
-   * a given component name.
+   * Returns the relative file path of the Fractal YAML configuration file for a given component name.
    *
    * Like Fractal, this implementation does not support separate configuration
    * files per variant.
@@ -227,8 +220,8 @@ class Component {
    * Returns the component's pathname, template, name, and a list of variants.
    *
    * @param string $compound_name
-   *   A compound name including the component and optionally variants,
-   *   delimited by double-hyphens (`--`).
+   *   A compound name including the component and optionally variants, delimited
+   *   by double-hyphens (`--`).
    *
    * @return array
    *   An array with four elements:
@@ -242,8 +235,8 @@ class Component {
     // Automatically expand a component name to its template filename; e.g.:
     // "@card" => "@card/card.twig"
     if (strpos($compound_name, '@') !== FALSE && stripos($compound_name, '.twig') === FALSE) {
-      $parts = explode('/', $compound_name);
-      $compound_name .= '/' . ltrim(end(array_filter($parts)), '@') . '.twig';
+      $parts = array_filter(explode('/', $compound_name));
+      $compound_name .= '/' . ltrim(end($parts), '@') . '.twig';
     }
     $pathname = preg_replace('@--[^.]+@', '', $compound_name);
     $template_pathname = $loader->exists($compound_name) ? $compound_name : $pathname;

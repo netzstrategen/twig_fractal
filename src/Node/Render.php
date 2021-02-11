@@ -118,8 +118,7 @@ class Render extends Twig_Node_Include {
   }
 
   /**
-   * Recursively converts attributes variables into Attribute objects in
-   * context variables.
+   * Recursively converts attributes variables into Attribute objects in context variables.
    *
    * @param array $variables
    *   The pre-merged component variables.
@@ -175,8 +174,7 @@ class Render extends Twig_Node_Include {
   }
 
   /**
-   * Passes the precompiled template variables to the Twig PHP template display
-   * method.
+   * Passes the precompiled template variables to the Twig PHP template display method.
    *
    * @param \Twig_Compiler $compiler
    */

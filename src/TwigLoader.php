@@ -28,10 +28,8 @@ class TwigLoader extends ComponentsLoader {
   /**
    * {@inheritdoc}
    */
-  public function __construct(ThemeHandlerInterface $theme_handler,ComponentsRegistry $components_registry,
-                              ThemeManagerInterface $theme_manager) {
-
-    parent::__construct($components_registry);
+  public function __construct(ThemeHandlerInterface $theme_handler,ComponentsRegistry $components_registry,ThemeManagerInterface $theme_manager) {
+      parent::__construct($components_registry);
 
     $default_theme = $theme_handler->getTheme($theme_handler->getDefault());
     if ($base_theme = $default_theme->base_theme) {
