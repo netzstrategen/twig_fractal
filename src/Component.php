@@ -243,7 +243,7 @@ class Component {
     // "@card" => "@card/card.twig"
     if (strpos($compound_name, '@') !== FALSE && stripos($compound_name, '.twig') === FALSE) {
       $parts = explode('/', $compound_name);
-      $compound_name .= '/' . ltrim(end($parts), '@') . '.twig';
+      $compound_name .= '/' . ltrim(end(array_filter($parts)), '@') . '.twig';
     }
     $pathname = preg_replace('@--[^.]+@', '', $compound_name);
     $template_pathname = $loader->exists($compound_name) ? $compound_name : $pathname;
