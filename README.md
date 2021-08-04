@@ -136,4 +136,6 @@ replaced with regular dependencies.
 
 ## Recommended packages
 
-* https://github.com/netzstrategen/twig-drupal
+https://github.com/netzstrategen/twig_fractal (this package) adds support for the `{% render %}` tag to the Twig environment in PHP (of your application).
+
+https://github.com/netzstrategen/fractal-twig adds support for the `{% render %}` tag to the Twig environment in JavaScript (of the Fractal UI).
