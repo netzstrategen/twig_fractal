@@ -30,8 +30,6 @@ use Twig_Node_Include;
  */
 class Render extends Twig_Node_Include {
 
-  protected static $env;
-
   /**
    * Pre-render callback.
    *
@@ -44,14 +42,6 @@ class Render extends Twig_Node_Include {
    */
   public function __construct(Twig_Node_Expression $expr, Twig_Node_Expression $variables = NULL, $only = FALSE, $ignoreMissing = FALSE, $lineno, $tag = NULL) {
     parent::__construct($expr, $variables, $only, $ignoreMissing, $lineno);
-  }
-
-  protected function setEnvironment(\Twig_Environment $env) {
-    static::$env = $env;
-  }
-
-  public static function getEnvironment(): \Twig_Environment {
-    return static::$env;
   }
 
   /**
@@ -68,31 +58,36 @@ class Render extends Twig_Node_Include {
    * @param \Twig_Compiler $compiler
    */
   protected function addGetTemplate(Twig_Compiler $compiler) {
-    $this->setEnvironment($compiler->getEnvironment());
-    $compiler->raw('$handles = (array) ')->subcompile($this->getNode('expr'))->raw(';');
-    $compiler->raw('$templates = [];');
-    $compiler->raw('foreach($handles as $handle):');
-      $compiler->raw('$passed_variables = $defaults = [];');
-      $compiler->raw('$component = new \Drupal\twig_fractal\Component(');
-        $compiler->raw('\Drupal\twig_fractal\Node\Render::getEnvironment(),');
-        $compiler->raw('$handle');
-      $compiler->raw(')')->raw(";\n");
-      $compiler->raw('$templates[] = $component->getTemplatePathname();');
-      // Exit loop when component is found to not look further.
-      $compiler->raw('if ($component->getDefinitionFilePath($component->getPathname())):');
-        $compiler->raw('$defaults = $component->getDefaultVariables();');
-        $compiler->raw('break;');
-      $compiler->raw('endif;');
-    $compiler->raw('endforeach;');
+    $compiler->write('$handles = (array) ')->subcompile($this->getNode('expr'))->raw(";")->raw("\n");
+    $compiler->write('$templates = [];')->raw("\n");
+    $compiler->write('foreach ($handles as $handle):')->raw("\n")
+      ->indent()
+        ->write('$passed_variables = $defaults = [];')->raw("\n")
+        ->write('$component = new \Drupal\twig_fractal\Component(')
+          ->raw('$this->env, ')
+          ->raw('$handle')
+          ->raw(');')->raw("\n")
+        ->write('$templates[] = $component->getTemplatePathname();')->raw("\n")
+        // Exit loop when component is found to not look further.
+        ->write('if ($component->getDefinitionFilePath($component->getPathname())):')->raw("\n")
+          ->indent()
+          ->write('$defaults = $component->getDefaultVariables();')->raw("\n")
+          ->write('break;')->raw("\n")
+          ->outdent()
+        ->write('endif;')->raw("\n")
+        ->outdent()
+      ->write('endforeach;')->raw("\n");
+
     if (!$this->hasNode('variables')) {
-      $compiler->raw('$variables = $defaults')->raw(";\n");
+      $compiler->write('$variables = $defaults;')->raw("\n");
     }
     else {
-      $compiler->raw('$passed_variables = ')->subcompile($this->getNode('variables'))->raw(";\n");
-      $compiler->raw('$variables = array_merge($defaults, $passed_variables)')->raw(";\n");
+      $compiler->write('$passed_variables = ')->subcompile($this->getNode('variables'))->raw(";\n");
+      $compiler->write('$variables = array_merge($defaults, $passed_variables)')->raw(";\n");
     }
-    $compiler->raw('\Drupal\twig_fractal\Node\Render::doPreRenderCallback($component->getPathname(), $component->getName())')->raw(";\n");
-    $compiler->raw('$variables = \Drupal\twig_fractal\Node\Render::convertAttributes($variables, $defaults, $passed_variables)')->raw(";\n");
+    $compiler->write('$variables = \Drupal\twig_fractal\Node\Render::convertAttributes($variables, $defaults, $passed_variables);')->raw("\n");
+
+    $compiler->write('\Drupal\twig_fractal\Node\Render::doPreRenderCallback($component->getPathname(), $component->getName());')->raw("\n");
     $compiler
       ->write('$this->loadTemplate(')
         ->raw('$templates')
@@ -192,12 +187,7 @@ class Render extends Twig_Node_Include {
     if (!$callback) {
       return;
     }
-    try {
-      $callback($path, $name);
-    }
-    catch (\Exception $e) {
-      return;
-    }
+    $callback($path, $name);
   }
 
 }
