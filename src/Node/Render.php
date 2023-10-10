@@ -40,7 +40,7 @@ class Render extends Twig_Node_Include {
   /**
    * Constructs a Twig template to render.
    */
-  public function __construct(Twig_Node_Expression $expr, Twig_Node_Expression $variables = NULL, $only = FALSE, $ignoreMissing = FALSE, $lineno, $tag = NULL) {
+  public function __construct(Twig_Node_Expression $expr, Twig_Node_Expression $variables = NULL, $only = FALSE, $ignoreMissing = FALSE, $lineno = NULL, $tag = NULL) {
     parent::__construct($expr, $variables, $only, $ignoreMissing, $lineno);
   }
 
