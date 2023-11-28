@@ -7,25 +7,25 @@
 
 namespace Drupal\twig_fractal\NodeVisitors;
 
-use Twig_BaseNodeVisitor;
-use Twig_Environment;
-use Twig_Node;
+use Twig\NodeVisitor\AbstractNodeVisitor;
+use Twig\Environment;
+use Twig\Node\Node;
 
-class Attributes extends Twig_BaseNodeVisitor {
+class Attributes extends AbstractNodeVisitor {
 
   /**
    * {@inheritdoc}
    */
-  public function doEnterNode(Twig_Node $node, Twig_Environment $env): Twig_Node {
+  public function doEnterNode(Node $node, Environment $env): Node {
     return $node;
   }
 
   /**
    * Changes the filter for attributes nodes to avoid quote escaping.
    *
-   * @return Twig_Node The modified node
+   * @return Node The modified node
    */
-  public function doLeaveNode(Twig_Node $node, Twig_Environment $env): Twig_Node {
+  public function doLeaveNode(Node $node, Environment $env): Node {
     if (!$node->hasNode('expr')) {
       return $node;
     }
@@ -45,9 +45,9 @@ class Attributes extends Twig_BaseNodeVisitor {
   /**
    * Checks if the passed node is an attributes node.
    *
-   * @return \Twig_Node|null
+   * @return \Node|null
    */
-  protected function isAttributes($node): ?Twig_Node {
+  protected function isAttributes($node): ?Node {
     if ($node->hasAttribute('name') && strpos($node->getAttribute('name'), 'attributes') !== FALSE) {
       return $node;
     }

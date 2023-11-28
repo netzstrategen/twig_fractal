@@ -9,16 +9,16 @@ namespace Drupal\twig_fractal;
 
 use Drupal\twig_fractal\TokenParser\Render;
 use Drupal\twig_fractal\NodeVisitors\Attributes;
-use Twig_Extension;
+use Twig\Extension\AbstractExtension;
 
 /**
  * Registers a new `render` token parser to make Fractal components reusable in Drupal.
  *
  * @see \Drupal\twig_fractal\TokenParser\Render
  *
- * @implements Twig_ExtensionInterface
+ * @implements Twig\Extension\ExtensionInterface
  */
-class TwigFractal extends Twig_Extension {
+class TwigFractal extends AbstractExtension {
 
   /**
    * Adds a new Render token parser instance to the list of parsers.

@@ -10,6 +10,7 @@ namespace Drupal\twig_fractal;
 use Drupal;
 use Drupal\Component\Utility\Html;
 use Symfony\Component\Yaml\Yaml;
+use Twig\Environment;
 
 /**
  * Prepares context variables for a Twig `render` node.
@@ -56,7 +57,7 @@ class Component {
    *   A component name handle from which to extract the group, name,
    *   and variant; e.g., '@foo/bar.twig' or '@foo/bar--baz.twig'.
    */
-  public function __construct(\Twig_Environment $env, string $handle) {
+  public function __construct(Environment $env, string $handle) {
     $this->env = $env;
     list($this->pathname, $this->templatePathname, $this->name, $this->variants) = $this->extractParts($handle);
   }

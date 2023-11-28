@@ -8,8 +8,8 @@
 namespace Drupal\twig_fractal\TokenParser;
 
 use Drupal\twig_fractal\Node;
-use Twig_Token;
-use Twig_TokenParser;
+use Twig\Token;
+use Twig\TokenParser\AbstractTokenParser;
 
 /**
  * Registers and parses a new `render` tag for Twig templates.
@@ -30,23 +30,23 @@ use Twig_TokenParser;
  * {% render '@foo/baz--bar.twig' with { qux: 'foobar' } %}
  * @endcode
  *
- * @see Twig_TokenParser_Include
+ * @see Twig\TokenParser\Include
  * @see http://fractal.build/guide/components/variants
  */
-class Render extends Twig_TokenParser {
+class Render extends AbstractTokenParser {
 
   /**
    * Parses a Twig token and returns a new Render node.
    *
-   * @param \Twig_Token $token
-   *   The Twig_Token to parse.
+   * @param \Twig\Token $token
+   *   The Twig\Token to parse.
    *
    * @return \Drupal\twig_fractal\Node\Render
    *   The Render node.
    *
-   * @see Twig_TokenParser_Include::parse()
+   * @see TokenParser_Include::parse()
    */
-  public function parse(Twig_Token $token): Node\Render {
+  public function parse(Token $token): Node\Render {
     $expr = $this->parser->getExpressionParser()->parseExpression();
     list($variables, $only, $ignoreMissing) = $this->parseArguments();
     return new Node\Render($expr, $variables, $only, $ignoreMissing, $token->getLine(), $this->getTag());
@@ -58,19 +58,19 @@ class Render extends Twig_TokenParser {
    * @return array
    *   The extracted arguments.
    *
-   * @see Twig_TokenParser_Include::parseArguments()
+   * @see TokenParser_Include::parseArguments()
    */
   protected function parseArguments(): array {
     $stream = $this->parser->getStream();
 
     $ignoreMissing = FALSE;
-    if ($stream->nextIf(Twig_Token::NAME_TYPE, 'ignore')) {
-      $stream->expect(Twig_Token::NAME_TYPE, 'missing');
+    if ($stream->nextIf(Token::NAME_TYPE, 'ignore')) {
+      $stream->expect(Token::NAME_TYPE, 'missing');
       $ignoreMissing = TRUE;
     }
 
     $variables = NULL;
-    if ($stream->nextIf(Twig_Token::NAME_TYPE, 'with')) {
+    if ($stream->nextIf(Token::NAME_TYPE, 'with')) {
       $variables = $this->parser->getExpressionParser()->parseExpression();
     }
 
@@ -79,7 +79,7 @@ class Render extends Twig_TokenParser {
     // template.
     $only = TRUE;
 
-    $stream->expect(Twig_Token::BLOCK_END_TYPE);
+    $stream->expect(Token::BLOCK_END_TYPE);
 
     return [$variables, $only, $ignoreMissing];
   }
