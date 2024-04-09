@@ -8,9 +8,9 @@
 namespace Drupal\twig_fractal\Node;
 
 use Drupal\Core\Template\Attribute;
-use Twig_Compiler;
-use Twig_Node_Expression;
-use Twig_Node_Include;
+use Twig\Compiler;
+use Twig\Node\Expression\AbstractExpression;
+use Twig\Node\IncludeNode;
 
 /**
  * Compiles `render` nodes.
@@ -28,7 +28,7 @@ use Twig_Node_Include;
  *    component's definition file, which may be overridden by
  * 3. the variables passed to the `render` tag itself.
  */
-class Render extends Twig_Node_Include {
+class Render extends IncludeNode {
 
   /**
    * Pre-render callback.
@@ -40,7 +40,7 @@ class Render extends Twig_Node_Include {
   /**
    * Constructs a Twig template to render.
    */
-  public function __construct(Twig_Node_Expression $expr, Twig_Node_Expression $variables = NULL, $only = FALSE, $ignoreMissing = FALSE, $lineno = NULL, $tag = NULL) {
+  public function __construct(AbstractExpression $expr, ?AbstractExpression $variables = NULL, $only = FALSE, $ignoreMissing = FALSE, $lineno = NULL, $tag = NULL) {
     parent::__construct($expr, $variables, $only, $ignoreMissing, $lineno);
   }
 
@@ -55,9 +55,9 @@ class Render extends Twig_Node_Include {
    *    component's definition file, which may be overridden by
    * 3. the variables passed to the `render` tag itself.
    *
-   * @param \Twig_Compiler $compiler
+   * @param \Twig\Compiler $compiler
    */
-  protected function addGetTemplate(Twig_Compiler $compiler) {
+  protected function addGetTemplate(Compiler $compiler) {
     $compiler->write('$handles = (array) ')->subcompile($this->getNode('expr'))->raw(";")->raw("\n");
     $compiler->write('$templates = [];')->raw("\n");
     $compiler->write('foreach ($handles as $handle):')->raw("\n")
@@ -158,9 +158,9 @@ class Render extends Twig_Node_Include {
   /**
    * Passes the precompiled template variables to the Twig PHP template display method.
    *
-   * @param \Twig_Compiler $compiler
+   * @param \Twig\Compiler $compiler
    */
-  protected function addTemplateArguments(Twig_Compiler $compiler) {
+  protected function addTemplateArguments(Compiler $compiler) {
     $compiler->raw('$variables');
   }
 
