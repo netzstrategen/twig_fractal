@@ -48,7 +48,7 @@ class Attributes extends AbstractNodeVisitor {
    * @return \Node|null
    */
   protected function isAttributes($node): ?Node {
-    if ($node->hasAttribute('name') && strpos($node->getAttribute('name'), 'attributes') !== FALSE) {
+    if ($node->hasAttribute('name') && strpos((string) $node->getAttribute('name'), 'attributes') !== FALSE) {
       return $node;
     }
     elseif ($node->hasNode('node')) {
