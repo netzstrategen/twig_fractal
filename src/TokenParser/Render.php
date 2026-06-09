@@ -49,7 +49,7 @@ class Render extends AbstractTokenParser {
   public function parse(Token $token): Node\Render {
     $expr = $this->parser->getExpressionParser()->parseExpression();
     list($variables, $only, $ignoreMissing) = $this->parseArguments();
-    return new Node\Render($expr, $variables, $only, $ignoreMissing, $token->getLine(), $this->getTag());
+    return new Node\Render($expr, $variables, $only, $ignoreMissing, $token->getLine());
   }
 
   /**

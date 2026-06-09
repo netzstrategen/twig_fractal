@@ -9,6 +9,7 @@ namespace Drupal\twig_fractal\Node;
 
 use Drupal\Core\Template\Attribute;
 use Twig\Compiler;
+use Twig\Error\LoaderError;
 use Twig\Node\Expression\AbstractExpression;
 use Twig\Node\IncludeNode;
 
@@ -40,63 +41,75 @@ class Render extends IncludeNode {
   /**
    * Constructs a Twig template to render.
    */
-  public function __construct(AbstractExpression $expr, ?AbstractExpression $variables = NULL, $only = FALSE, $ignoreMissing = FALSE, $lineno = NULL, $tag = NULL) {
+  public function __construct(AbstractExpression $expr, ?AbstractExpression $variables = null, bool $only = false, bool $ignoreMissing = false, int $lineno = 0) {
     parent::__construct($expr, $variables, $only, $ignoreMissing, $lineno);
   }
 
   /**
-   * Adds the template variables to the compiled Twig PHP template string.
+   * Compiles the render node.
    *
-   * Variables consist of
-   *
-   * 1. the default `context` properties in the component's definition file,
-   *    which may be overridden by
-   * 2. the `context` properties of the requested variants (if any) in the
-   *    component's definition file, which may be overridden by
-   * 3. the variables passed to the `render` tag itself.
-   *
-   * @param \Twig\Compiler $compiler
+   * Overrides IncludeNode::compile() entirely to inject component-lookup and
+   * variable-merging statements before the yield-based template dispatch
+   * introduced in Twig 3.9.
    */
-  protected function addGetTemplate(Compiler $compiler) {
-    $compiler->write('$handles = (array) ')->subcompile($this->getNode('expr'))->raw(";")->raw("\n");
-    $compiler->write('$templates = [];')->raw("\n");
-    $compiler->write('foreach ($handles as $handle):')->raw("\n")
+  public function compile(Compiler $compiler): void {
+    $compiler->addDebugInfo($this);
+
+    // Resolve handle(s), collect candidate template paths, and load defaults
+    // from the first component definition file found.
+    $compiler
+      ->write('$handles = (array) ')->subcompile($this->getNode('expr'))->raw(";\n")
+      ->write('$templates = [];')->raw("\n")
+      ->write('$defaults = [];')->raw("\n")
+      ->write('$passed_variables = [];')->raw("\n")
+      ->write('foreach ($handles as $handle) {')->raw("\n")
       ->indent()
-        ->write('$passed_variables = $defaults = [];')->raw("\n")
-        ->write('$component = new \Drupal\twig_fractal\Component(')
-          ->raw('$this->env, ')
-          ->raw('$handle')
-          ->raw(');')->raw("\n")
+        ->write('$component = new \Drupal\twig_fractal\Component($this->env, $handle);')->raw("\n")
         ->write('$templates[] = $component->getTemplatePathname();')->raw("\n")
-        // Exit loop when component is found to not look further.
-        ->write('if ($component->getDefinitionFilePath($component->getPathname())):')->raw("\n")
-          ->indent()
+        ->write('if ($component->getDefinitionFilePath($component->getPathname())) {')->raw("\n")
+        ->indent()
           ->write('$defaults = $component->getDefaultVariables();')->raw("\n")
           ->write('break;')->raw("\n")
-          ->outdent()
-        ->write('endif;')->raw("\n")
         ->outdent()
-      ->write('endforeach;')->raw("\n");
+        ->write('}')->raw("\n")
+      ->outdent()
+      ->write('}')->raw("\n");
 
-    if (!$this->hasNode('variables')) {
-      $compiler->write('$variables = $defaults;')->raw("\n");
+    if ($this->hasNode('variables')) {
+      $compiler
+        ->write('$passed_variables = ')->subcompile($this->getNode('variables'))->raw(";\n")
+        ->write('$variables = array_merge($defaults, $passed_variables);')->raw("\n");
     }
     else {
-      $compiler->write('$passed_variables = ')->subcompile($this->getNode('variables'))->raw(";\n");
-      $compiler->write('$variables = array_merge($defaults, $passed_variables)')->raw(";\n");
+      $compiler->write('$variables = $defaults;')->raw("\n");
     }
-    $compiler->write('$variables = \Drupal\twig_fractal\Node\Render::convertAttributes($variables, $defaults, $passed_variables);')->raw("\n");
 
-    $compiler->write('\Drupal\twig_fractal\Node\Render::doPreRenderCallback($component->getPathname(), $component->getName());')->raw("\n");
     $compiler
-      ->write('$this->loadTemplate(')
-        ->raw('$templates')
-        ->raw(', ')
-        ->repr($this->getTemplateName())
-        ->raw(', ')
-        ->repr($this->getTemplateLine())
-      ->raw(')')
-    ;
+      ->write('$variables = \Drupal\twig_fractal\Node\Render::convertAttributes($variables, $defaults, $passed_variables);')->raw("\n")
+      ->write('\Drupal\twig_fractal\Node\Render::doPreRenderCallback($component->getPathname(), $component->getName());')->raw("\n");
+
+    if ($this->getAttribute('ignore_missing')) {
+      $t = $compiler->getVarName();
+      $compiler
+        ->write("try {\n")
+        ->indent()
+          ->write("\$$t = \$this->load(\$templates, ")->repr($this->getTemplateLine())->raw(");\n")
+        ->outdent()
+        ->write('} catch (\Twig\Error\LoaderError $e) {')->raw("\n")
+        ->indent()
+          ->write("\$$t = null;\n")
+        ->outdent()
+        ->write("}\n")
+        ->write("if (\$$t !== null) {\n")
+        ->indent()
+          ->write("yield from \$$t->unwrap()->yield(\$variables);\n")
+        ->outdent()
+        ->write("}\n");
+    }
+    else {
+      $compiler
+        ->write('yield from $this->load($templates, ')->repr($this->getTemplateLine())->raw(')->unwrap()->yield($variables);')->raw("\n");
+    }
   }
 
   /**
@@ -153,15 +166,6 @@ class Render extends IncludeNode {
       }
     }
     return $variables;
-  }
-
-  /**
-   * Passes the precompiled template variables to the Twig PHP template display method.
-   *
-   * @param \Twig\Compiler $compiler
-   */
-  protected function addTemplateArguments(Compiler $compiler) {
-    $compiler->raw('$variables');
   }
 
   /**
