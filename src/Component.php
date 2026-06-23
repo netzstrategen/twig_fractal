@@ -178,6 +178,7 @@ class Component {
     else {
       $filepath = NULL;
     }
+
     return $filepath;
   }
 
@@ -232,6 +233,12 @@ class Component {
    */
   protected function extractParts(string $compound_name): array {
     $loader = $this->env->getLoader();
+    // Automatically expand a component name to its template filename; e.g.:
+    // "@card" => "@card/card.twig"
+    if (strpos($compound_name, '@') !== FALSE && stripos($compound_name, '.twig') === FALSE) {
+      $parts = array_filter(explode('/', $compound_name));
+      $compound_name .= '/' . ltrim(end($parts), '@') . '.twig';
+    }
     $pathname = preg_replace('@--[^.]+@', '', $compound_name);
     $template_pathname = $loader->exists($compound_name) ? $compound_name : $pathname;
 

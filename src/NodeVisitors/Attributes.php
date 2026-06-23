@@ -45,7 +45,7 @@ class Attributes extends AbstractNodeVisitor {
   /**
    * Checks if the passed node is an attributes node.
    *
-   * @return \Node|null
+   * @return \Twig\Node\Node|null
    */
   protected function isAttributes($node): ?Node {
     if ($node->hasAttribute('name') && str_contains((string) $node->getAttribute('name'), 'attributes')) {

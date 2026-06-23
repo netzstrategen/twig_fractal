@@ -30,7 +30,7 @@ use Twig\TokenParser\AbstractTokenParser;
  * {% render '@foo/baz--bar.twig' with { qux: 'foobar' } %}
  * @endcode
  *
- * @see Twig\TokenParser\Include
+ * @see Twig_TokenParser_Include
  * @see http://fractal.build/guide/components/variants
  */
 class Render extends AbstractTokenParser {
@@ -39,12 +39,12 @@ class Render extends AbstractTokenParser {
    * Parses a Twig token and returns a new Render node.
    *
    * @param \Twig\Token $token
-   *   The Twig\Token to parse.
+   *   The Twig_Token to parse.
    *
    * @return \Drupal\twig_fractal\Node\Render
    *   The Render node.
    *
-   * @see TokenParser_Include::parse()
+   * @see Twig_TokenParser_Include::parse()
    */
   public function parse(Token $token): Node\Render {
     $expr = $this->parser->getExpressionParser()->parseExpression();
@@ -58,7 +58,7 @@ class Render extends AbstractTokenParser {
    * @return array
    *   The extracted arguments.
    *
-   * @see TokenParser_Include::parseArguments()
+   * @see Twig_TokenParser_Include::parseArguments()
    */
   protected function parseArguments(): array {
     $stream = $this->parser->getStream();
